@@ -3,7 +3,7 @@ const User = require('../models/user');
 const userController = {
     createUser: async (req, res) => {
         try {
-            const { clerkId, name, email, phone, profilePhoto } = req.body;
+            const { clerkId, name, email, phone, profilePhoto, role } = req.body;
 
             // Check if user exists
             let user = await User.findOne({ email });
@@ -16,7 +16,8 @@ const userController = {
                 name,
                 email,
                 phone,
-                profilePhoto
+                profilePhoto,
+                role
             });
 
             await user.save();

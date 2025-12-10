@@ -21,6 +21,11 @@ const userSchema = new mongoose.Schema({
     profilePhoto: {
         type: String
     },
+    role: {
+        type: String,
+        enum: ['user', 'driver', 'admin'],
+        default: 'user'
+    },
     rating: {
         type: Number,
         default: 0
