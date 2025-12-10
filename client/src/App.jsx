@@ -9,7 +9,9 @@ import MyVehicles from "./routes/MyVehicles";
 import Dashboard from "./routes/Dashboard";
 import Login from "./routes/Login";
 import Signup from "./routes/Signup";
+import AdminDashboard from "./routes/AdminDashboard";
 import UserSync from "./components/UserSync";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 export default function App() {
   return (
@@ -27,6 +29,14 @@ export default function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute role="admin">
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </main>
     </div>
