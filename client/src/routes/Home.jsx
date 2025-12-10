@@ -54,7 +54,7 @@ export default function Home() {
               if (requested) setIncomingRequest(requested);
 
               // Check for active driver tasks (accepted/ongoing)
-              const active = res.data.incoming.find(r => ['accepted', 'ongoing'].includes(r.status));
+              const active = res.data.incoming.find(r => ['accepted', 'arrived', 'ongoing'].includes(r.status));
               if (active) {
                 setActiveDriverRequest(active);
                 // Check viewState to avoid forcing view if user navigated away, but for hackathon auto-switch is good
@@ -72,7 +72,7 @@ export default function Home() {
             // 2. Outgoing Requests (Rider)
             if (res.data.outgoing && res.data.outgoing.length > 0) {
               // Check for my active requests
-              const myActive = res.data.outgoing.find(r => ['accepted', 'ongoing', 'completed'].includes(r.status));
+              const myActive = res.data.outgoing.find(r => ['accepted', 'arrived', 'ongoing', 'completed'].includes(r.status));
               // Also check 'requested' to show waiting state if selected
               const myRequested = res.data.outgoing.find(r => r.status === 'requested');
 
