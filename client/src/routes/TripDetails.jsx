@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import api from "../api";
 import RideRequestModal from "../components/RideRequestModal";
+import MapDisplay from "../components/MapDisplay";
 
 export default function TripDetails() {
   const { id } = useParams();
@@ -72,6 +73,10 @@ export default function TripDetails() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Main Info */}
         <div className="md:col-span-2 space-y-6">
+          <MapDisplay
+            startLocation={trip.startLocation}
+            endLocation={trip.endLocation}
+          />
           <div className="rounded-xl border border-border bg-card text-card-foreground shadow-sm p-6">
             <h3 className="font-semibold text-lg mb-4">Route Info</h3>
             <div className="space-y-4">

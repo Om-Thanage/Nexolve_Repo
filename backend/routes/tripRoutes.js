@@ -7,6 +7,7 @@ const catchAsync = fn => (req, res, next) => {
 };
 
 router.post('/', catchAsync(tripController.createTrip));
+router.get('/', catchAsync(tripController.getAllTrips));
 router.get('/search', catchAsync(tripController.searchTrips));
 router.get('/:id', catchAsync(tripController.getTripDetails));
 router.put('/:id/status', catchAsync(tripController.updateTripStatus));
