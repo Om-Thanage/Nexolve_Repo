@@ -3,7 +3,7 @@ const app = express();
 const port = 3000;
 const cors = require("cors");
 const dotenv = require("dotenv");
-const connectDB = require("./config/db");
+const connectDB = require("./config/mongodb");
 
 app.use(cors());
 app.use(express.json());
