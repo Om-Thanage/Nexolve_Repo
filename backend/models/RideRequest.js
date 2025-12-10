@@ -1,0 +1,28 @@
+const mongoose = require('mongoose');
+
+const rideRequestSchema = new mongoose.Schema({
+    trip: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Trip',
+        required: true
+    },
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
+    status: {
+        type: String,
+        enum: ['requested', 'accepted', 'rejected', 'cancelled'],
+        default: 'requested'
+    },
+    seatsRequested: {
+        type: Number,
+        default: 1
+    },
+    notes: {
+        type: String
+    }
+}, { timestamps: true });
+
+module.exports = mongoose.model('RideRequest', rideRequestSchema);
