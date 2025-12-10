@@ -5,8 +5,12 @@ import { Star, ShieldCheck, Clock, Car } from 'lucide-react';
 export default function CarpoolDetails({ ride, onBack, onRequest }) {
     if (!ride) return null;
 
-    const driver = ride.host?.user || {};
-    const vehicle = ride.host?.vehicle || {};
+    console.log(ride);
+
+    const host = ride.host || {};
+    const driverUser = host.user || {}; // Access the user details from the host object
+
+    const vehicle = ride.vehicle || host.vehicle || {};
 
     return (
         <motion.div
@@ -25,12 +29,12 @@ export default function CarpoolDetails({ ride, onBack, onRequest }) {
                 {/* Header */}
                 <div className="flex items-start justify-between">
                     <div>
-                        <h2 className="text-xl font-bold">{driver.name}'s Ride</h2>
+                        <h2 className="text-xl font-bold">{driverUser.name || 'Driver'}'s Ride</h2>
                         <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
                             <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs font-semibold flex items-center gap-1">
                                 <ShieldCheck size={12} /> Verified
                             </span>
-                            <span>• {vehicle.plateNumber || 'MH12XX9999'}</span>
+                            <span>• {vehicle.plateNumber || 'Unknown Plate'}</span>
                         </div>
                     </div>
                     <div className="text-right">
@@ -51,29 +55,31 @@ export default function CarpoolDetails({ ride, onBack, onRequest }) {
                     <div className="flex-1 text-right">
                         <div className="flex items-center justify-end gap-1 text-primary">
                             <Clock size={14} />
-                            <span className="font-bold">10 min</span>
+                            <span className="font-bold">
+                                {ride.startTime ? new Date(ride.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Soon'}
+                            </span>
                         </div>
-                        <p className="text-xs text-muted-foreground">away</p>
+                        <p className="text-xs text-muted-foreground">Departure</p>
                     </div>
                 </div>
 
                 {/* Driver Profile */}
                 <div className="flex items-center gap-4">
                     <div className="w-14 h-14 rounded-full bg-secondary overflow-hidden">
-                        {driver.profilePhoto ? (
-                            <img src={driver.profilePhoto} alt={driver.name} className="w-full h-full object-cover" />
+                        {driverUser.profilePhoto ? (
+                            <img src={driverUser.profilePhoto} alt={driverUser.name} className="w-full h-full object-cover" />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center bg-primary/10 text-primary font-bold text-xl">
-                                {driver.name?.[0]}
+                                {driverUser.name?.[0] || 'D'}
                             </div>
                         )}
                     </div>
                     <div>
-                        <p className="font-semibold text-base">Owner • {vehicle.model || 'Sedan'}</p>
+                        <p className="font-semibold text-base">{driverUser.name || 'Driver'} • {vehicle.model || 'Vehicle'}</p>
                         <div className="flex items-center gap-1">
                             <Star size={14} className="fill-yellow-400 text-yellow-400" />
-                            <span className="text-sm font-medium">4.8</span>
-                            <span className="text-sm text-muted-foreground">(120 rides)</span>
+                            <span className="text-sm font-medium">{host.rating || 'New'}</span>
+                            <span className="text-sm text-muted-foreground">({host.totalTrips || 0} rides)</span>
                         </div>
                     </div>
                 </div>
@@ -81,10 +87,10 @@ export default function CarpoolDetails({ ride, onBack, onRequest }) {
                 {/* Vehicle Pill */}
                 <div className="flex gap-2">
                     <span className="px-3 py-1 bg-secondary rounded-lg text-xs font-medium flex items-center gap-1">
-                        <Car size={14} /> {vehicle.model || 'Comfort Ride'}
+                        <Car size={14} /> {vehicle.model || 'Car'}
                     </span>
                     <span className="px-3 py-1 bg-secondary rounded-lg text-xs font-medium">
-                        {vehicle.fuelType || 'Petrol'}
+                        {vehicle.fuelType || 'Fuel'}
                     </span>
                 </div>
 

@@ -3,15 +3,22 @@ import { motion, AnimatePresence } from 'framer-motion';
 import RideOptionCard from './RideOptionCard';
 
 export default function RideOptionsList({ rides, alternatives = [], onSelect, selectedId }) {
+    const userId = localStorage.getItem('userId');
+    const filteredRides = rides.filter(r => {
+        const hostUserId = r.host?.user?._id || r.host?.user;
+        return hostUserId !== userId;
+    });
+
     const allOptions = [
-        ...rides.map(r => ({
+        ...filteredRides.map(r => ({
             id: r._id,
             type: 'car',
-            title: r.host?.vehicle?.model || 'Car',
+            title: r.vehicle?.model || 'Car',
             price: r.farePerSeat,
             seats: r.availableSeats,
             eta: Math.floor(Math.random() * 10) + 2, // Mock ETA for now
-            desc: r.host?.user?.name || 'Driver'
+            desc: r.host?.user?.name || 'Driver',
+            original: r // Use this to pass full data for details view
         })),
         ...alternatives
     ];

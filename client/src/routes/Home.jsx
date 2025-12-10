@@ -13,42 +13,30 @@ const libraries = ['places'];
 
 export default function Home() {
   const [userLocation, setUserLocation] = useState(null);
-  const [startLocation, setStartLocation] = useState(null); // stores { address, coordinates }
+  const [startLocation, setStartLocation] = useState(null);
   const [startAddress, setStartAddress] = useState("Current Location");
   const [destination, setDestination] = useState(null);
   const [directions, setDirections] = useState(null);
   const [rides, setRides] = useState([]);
   const [selectedRideId, setSelectedRideId] = useState(null);
   const [selectedRide, setSelectedRide] = useState(null);
-  const [viewState, setViewState] = useState('searching'); // 'searching', 'details', 'ride'
+  const [viewState, setViewState] = useState('searching');
   const [isSearching, setIsSearching] = useState(false);
 
-  // Real User & Driver Logic
+
   const { user } = useUser();
   const [incomingRequest, setIncomingRequest] = useState(null);
-  const [dbUser, setDbUser] = useState(null); // Assuming we fetch our DB user details separately if needed.
+  const [dbUser, setDbUser] = useState(null);
 
-  // Poll for Incoming Requests (Driver Mode)
   useEffect(() => {
     let interval;
     if (user) {
-      // Fetch MongoDB ID? For now we can use Clerk ID or just rely on backend to resolve user from auth token if implemented
-      // But our backend 'getPendingRequests' expects 'userId' (Mongo ID) currently.
-      // We need to resolve Clerk ID to Mongo ID first.
-      // Quick Fix: Let's assume we can pass clerkId to backend or we fetch userId once.
       const checkRequests = async () => {
         try {
-          // First get our Mongo ID if not known (optimize later)
-          // For hackathon, we assume api.get('/users/me') or similar exists or we search by clerkId first
-          // Let's try to find user by clerkId if we don't have dbUser
           let userId = dbUser?._id;
 
           if (!userId) {
-            const uRes = await api.get(`/users/${user.id}`); // This endpoint needs to exist or be /users?clerkId=...
-            // Wait, our backend might check auth header. 
-            // Let's assume we use /users/profile or similar.
-            // If standard setup: GET /users/my-profile
-            // fallback: we search by email/clerkId
+            const uRes = await api.get(`/users/${user.id}`);
             const userRes = await api.get(`/users/check/${user.id}`).catch(() => null);
             if (userRes && userRes.data) {
               setDbUser(userRes.data);
@@ -59,7 +47,7 @@ export default function Home() {
           if (userId) {
             const res = await api.get('/ride-requests/pending', { params: { userId } });
             if (res.data && res.data.length > 0) {
-              setIncomingRequest(res.data[0]); // Show first one
+              setIncomingRequest(res.data[0]);
             }
           }
         } catch (e) {
@@ -98,7 +86,6 @@ export default function Home() {
         },
         (error) => {
           console.error("Error getting location:", error);
-          // Fallback to default (e.g., Nagpur or generic)
           setUserLocation({ lat: 21.1458, lng: 79.0882 });
         }
       );
@@ -134,9 +121,6 @@ export default function Home() {
               const distanceKm = route.distance.value / 1000;
               // const durationMins = route.duration.value / 60;
 
-              // B. Create Mock Alternatives - REMOVED
-              // We rely solely on real carpools now.
-
 
             } else {
               console.error(`Directions request failed: ${status}`);
@@ -144,9 +128,8 @@ export default function Home() {
           }
         );
 
-        // C. Fetch Real Carpools (from Backend)
+        // C. Fetch Carpools 
         try {
-          // Use search endpoint with start and end coordinates
           const startCoords = startLocation ? startLocation.coordinates : [userLocation.lng, userLocation.lat];
           const destCoords = destination.coordinates || [];
 
@@ -162,6 +145,7 @@ export default function Home() {
 
           const res = await api.get("/trips/search", { params });
           setRides(res.data || []);
+
         } catch (e) {
           console.error("Failed to fetch carpools", e);
         } finally {
@@ -187,10 +171,9 @@ export default function Home() {
 
   const handleSelectOption = (option) => {
     setSelectedRideId(option.id || option._id);
-    setSelectedRide(option);
+    setSelectedRide(option.original || option);
 
     // If it's a real trip (has _id and host), show details
-    // If mock, we might skip details or mock them.
     if (option.type === 'car') {
       setViewState('details');
     }

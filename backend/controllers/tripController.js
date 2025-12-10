@@ -72,14 +72,10 @@ const tripController = {
                 },
                 status: { $in: ['pending', 'scheduled'] },
                 availableSeats: { $gt: 0 },
-                // Optional: Filter by time if provided
-                // startTime: { $gte: new Date(startTime || Date.now()) } 
-            }).populate({
+
+            }).populate('vehicle').populate({
                 path: 'host',
-                populate: [
-                    { path: 'vehicle', model: 'Vehicle' },
-                    { path: 'user', model: 'User' }
-                ]
+                populate: { path: 'user', model: 'User' }
             });
 
             // 2. Filter by end location if provided
@@ -109,7 +105,11 @@ const tripController = {
         try {
             const { id } = req.params;
             const trip = await Trip.findById(id)
-                .populate('host')
+                .populate('vehicle')
+                .populate({
+                    path: 'host',
+                    populate: { path: 'user', model: 'User' }
+                })
                 .populate('participants', 'name email profilePhoto');
 
             if (!trip) {

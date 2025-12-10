@@ -10,5 +10,6 @@ const catchAsync = fn => (req, res, next) => {
 router.post('/', catchAsync(userController.createUser));
 router.get('/:clerkId', catchAsync(userController.getUserProfile));
 router.put('/:clerkId/preferences', catchAsync(userController.updatePreferences));
+router.get('/:id', catchAsync(userController.getName));
 
 module.exports = router;
