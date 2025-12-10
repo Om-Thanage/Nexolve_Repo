@@ -12,6 +12,7 @@
   "dependencies": {
     "@clerk/clerk-react": "^5.58.1",
     "@clerk/themes": "^2.4.43",
+    "@react-google-maps/api": "^2.20.7",
     "@tailwindcss/vite": "^4.1.17",
     "axios": "^1.13.2",
     "react": "^19.2.0",

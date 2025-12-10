@@ -26,6 +26,21 @@ const tripController = {
         }
     },
 
+    getAllTrips: async (req, res) => {
+        try {
+            // Return all upcoming trips with available seats
+            const trips = await Trip.find({
+                status: 'pending',
+                startTime: { $gte: new Date() },
+                availableSeats: { $gt: 0 }
+            }).populate('host').sort({ startTime: 1 });
+
+            res.status(200).json(trips);
+        } catch (error) {
+            res.status(500).json({ message: 'Server error', error: error.message });
+        }
+    },
+
     searchTrips: async (req, res) => {
         try {
             const { startLat, startLng, endLat, endLng, startTime } = req.query;

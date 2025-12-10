@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import api from "../api";
 import { useNavigate } from "react-router-dom";
+import LocationSearchInput from "../components/LocationSearchInput";
 
 export default function CreateTrip() {
-  const [startAddr, setStartAddr] = useState("");
-  const [endAddr, setEndAddr] = useState("");
+  const [startLoc, setStartLoc] = useState({ address: "", coordinates: [0, 0] });
+  const [endLoc, setEndLoc] = useState({ address: "", coordinates: [0, 0] });
   const [startTime, setStartTime] = useState("");
   const [fare, setFare] = useState(50);
   const [seats, setSeats] = useState(3);
@@ -22,8 +23,8 @@ export default function CreateTrip() {
 
       const payload = {
         hostId,
-        startLocation: { address: startAddr, coordinates: [0, 0] },
-        endLocation: { address: endAddr, coordinates: [0, 0] },
+        startLocation: startLoc,
+        endLocation: endLoc,
         startTime,
         farePerSeat: fare,
         availableSeats: seats,
@@ -57,10 +58,11 @@ export default function CreateTrip() {
                 <label className="text-sm font-medium leading-none">
                   From Address
                 </label>
-                <input
+                <LocationSearchInput
                   required
-                  value={startAddr}
-                  onChange={(e) => setStartAddr(e.target.value)}
+                  value={startLoc.address}
+                  onChange={(e) => setStartLoc({ ...startLoc, address: e.target.value })}
+                  onSelect={(data) => setStartLoc({ address: data.address, coordinates: data.coordinates })}
                   placeholder="e.g. 123 Main St"
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 />
@@ -69,10 +71,11 @@ export default function CreateTrip() {
                 <label className="text-sm font-medium leading-none">
                   To Address
                 </label>
-                <input
+                <LocationSearchInput
                   required
-                  value={endAddr}
-                  onChange={(e) => setEndAddr(e.target.value)}
+                  value={endLoc.address}
+                  onChange={(e) => setEndLoc({ ...endLoc, address: e.target.value })}
+                  onSelect={(data) => setEndLoc({ address: data.address, coordinates: data.coordinates })}
                   placeholder="e.g. 456 Corporate Blvd"
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 />
