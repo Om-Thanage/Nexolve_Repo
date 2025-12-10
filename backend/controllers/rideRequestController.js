@@ -77,11 +77,6 @@ const rideRequestController = {
                 await notificationService.notifyRequestAccepted(request.user.email, driverUser ? driverUser.name : 'Your Driver');
             }
 
-            if (status === 'arrived') {
-                // Optional: Notify Rider that driver has arrived
-                // await notificationService.notifyDriverArrived(...)
-            }
-
             if (status === 'ongoing') {
                 // Verify OTP
                 const { otp } = req.body;
@@ -115,7 +110,7 @@ const rideRequestController = {
                 const tripIds = trips.map(t => t._id);
                 incoming = await RideRequest.find({
                     trip: { $in: tripIds },
-                    status: 'requested'
+                    status: { $in: ['requested', 'accepted', 'arrived', 'ongoing', 'completed'] }
                 }).populate('user').populate('trip');
             }
 
@@ -127,6 +122,25 @@ const rideRequestController = {
             res.status(200).json({ incoming, outgoing });
         } catch (error) {
             console.error("Fetch Pending Requests Error:", error);
+            res.status(500).json({ message: 'Server error', error: error.message });
+        }
+    },
+    updateRequestOtp: async (req, res) => {
+        try {
+            const { id } = req.params;
+            const { otp } = req.body;
+
+            const request = await RideRequest.findById(id);
+            if (!request) {
+                return res.status(404).json({ message: 'Request not found' });
+            }
+
+            request.otp = otp;
+            await request.save();
+
+            res.status(200).json({ message: 'OTP updated', request });
+        } catch (error) {
+            console.error("Update Request OTP Error:", error);
             res.status(500).json({ message: 'Server error', error: error.message });
         }
     }

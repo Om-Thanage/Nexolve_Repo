@@ -1,41 +1,14 @@
-const nodemailer = require('nodemailer');
-
-/**
- * Notification Service
- * Sends emails (and potentially SMS in future)
- */
-
-const transporter = nodemailer.createTransport({
-    service: process.env.EMAIL_SERVICE || 'gmail', // e.g. 'gmail'
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    }
-});
+// const nodemailer = require('nodemailer'); // Disabled as per user request
+// Notification Service - Mock Only
 
 const notificationService = {
     sendEmail: async (to, subject, text, html) => {
-        if (!process.env.EMAIL_USER) {
-            console.log(`[Mock Email] To: ${to}, Subject: ${subject}`);
-            return;
-        }
-
-        const mailOptions = {
-            from: process.env.EMAIL_USER,
-            to,
-            subject,
-            text,
-            html
-        };
-
-        try {
-            const info = await transporter.sendMail(mailOptions);
-            console.log('Email sent: ' + info.response);
-            return info;
-        } catch (error) {
-            console.error('Error sending email:', error);
-            // Don't throw, just log. Notifications shouldn't break core flow.
-        }
+        // Mock email sending - just log to console
+        console.log(`[Email Notification]`);
+        console.log(`To: ${to}`);
+        console.log(`Subject: ${subject}`);
+        console.log(`Body: ${text}`);
+        return { response: 'Email logged' };
     },
 
     notifyTripJoinRequest: async (driverEmail, riderName, tripId) => {

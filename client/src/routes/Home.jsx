@@ -53,8 +53,8 @@ export default function Home() {
               const requested = res.data.incoming.find(r => r.status === 'requested');
               if (requested) setIncomingRequest(requested);
 
-              // Check for active driver tasks (accepted/ongoing)
-              const active = res.data.incoming.find(r => ['accepted', 'arrived', 'ongoing'].includes(r.status));
+              // Check for active driver tasks (accepted/ongoing/completed)
+              const active = res.data.incoming.find(r => ['accepted', 'arrived', 'ongoing', 'completed'].includes(r.status));
               if (active) {
                 setActiveDriverRequest(active);
                 // Check viewState to avoid forcing view if user navigated away, but for hackathon auto-switch is good

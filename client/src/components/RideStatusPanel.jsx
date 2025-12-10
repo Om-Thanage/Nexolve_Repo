@@ -1,12 +1,17 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Phone, MessageSquare, Shield, CheckCircle2, Navigation as NavIcon, Car } from 'lucide-react';
+import api from '../api';
 
 export default function RideStatusPanel({ ride, request, isDriver, onReset, onDriverArrived }) {
     // Shared Status Panel for Rider & Driver
     const [otpInput, setOtpInput] = useState('');
     const [loading, setLoading] = useState(false);
     const [paymentDone, setPaymentDone] = useState(false);
+    const [driverLocation, setDriverLocation] = useState(null);
+    const [driverArrived, setDriverArrived] = useState(false);
+    const [driverOtp, setDriverOtp] = useState('');
+
 
     const handleVerifyOtp = async () => {
         if (otpInput.length !== 4) return alert("Enter 4 digits");
@@ -14,7 +19,7 @@ export default function RideStatusPanel({ ride, request, isDriver, onReset, onDr
         try {
             // Verify via update status
             // Assuming 'api' is globally available or imported elsewhere
-            await api.put(`/ requests / ${request._id}/status`, {
+            await api.put(`/requests/${request._id}/status`, {
                 status: 'ongoing',
                 otp: otpInput
             });
@@ -82,7 +87,7 @@ export default function RideStatusPanel({ ride, request, isDriver, onReset, onDr
         <motion.div
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
-            className="fixed bottom-0 left-0 right-0 z-40 bg-background rounded-t-3xl shadow-[0_-10px_40px_-10px_rgba(0,0,0,0.2)] border-t border-border md:w-96 md:left-auto md:right-8 md:bottom-8 md:rounded-3xl flex flex-col overflow-hidden"
+            className="absolute bottom-0 left-0 right-0 z-50 bg-background rounded-t-3xl shadow-[0_-10px_40px_-10px_rgba(0,0,0,0.2)] border-t border-border md:w-96 md:left-auto md:right-8 md:bottom-8 md:rounded-3xl flex flex-col overflow-hidden"
         >
             {/* Header */}
             <div className="bg-primary text-primary-foreground p-4 flex items-center justify-between">
@@ -101,13 +106,21 @@ export default function RideStatusPanel({ ride, request, isDriver, onReset, onDr
                 {request.status === 'accepted' && (
                     <div className="space-y-4">
                         {isDriver ? (
-                            <button
-                                onClick={handleArrived}
-                                disabled={loading}
-                                className="w-full py-3 bg-foreground text-background font-bold rounded-xl shadow-lg hover:opacity-90 disabled:opacity-50"
-                            >
-                                {loading ? 'Updating...' : 'I have Arrived'}
-                            </button>
+                            <>
+                                <button
+                                    onClick={handleArrived}
+                                    disabled={loading}
+                                    className="w-full py-3 bg-foreground text-background font-bold rounded-xl shadow-lg hover:opacity-90 disabled:opacity-50"
+                                >
+                                    {loading ? 'Updating...' : 'I have Arrived'}
+                                </button>
+                                <button
+                                    onClick={onDriverArrived}
+                                    className="w-full py-3 bg-blue-100 text-blue-700 font-bold rounded-xl hover:bg-blue-200"
+                                >
+                                    ⚡ Teleport to Pickup
+                                </button>
+                            </>
                         ) : (
                             // Rider View (Waiting)
                             <div className="bg-secondary/30 p-4 rounded-xl text-center space-y-2">
@@ -202,6 +215,6 @@ export default function RideStatusPanel({ ride, request, isDriver, onReset, onDr
                 )}
 
             </div>
-        </motion.div>
+        </motion.div >
     );
 }
