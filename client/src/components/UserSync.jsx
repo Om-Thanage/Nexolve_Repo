@@ -21,7 +21,8 @@ export default function UserSync() {
 
           if (res.data.user) {
             localStorage.setItem("userId", res.data.user._id);
-            localStorage.setItem("driverId", res.data.user._id); // Assuming user can identify as driver with same ID for simplicity in this demo, or we query driver profile separately
+            localStorage.setItem("driverId", res.data.user._id);
+            localStorage.setItem("userRole", res.data.user.role);
           }
         } catch (e) {
           console.error("Failed to sync user", e);

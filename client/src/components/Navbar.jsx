@@ -51,18 +51,34 @@ export default function Navbar() {
                 Become Driver
               </NavLink>
             </li>
-            <li>
-              <NavLink
-                to="/dashboard"
-                className={({ isActive }) =>
-                  isActive
-                    ? "text-foreground font-semibold"
-                    : "text-muted-foreground hover:text-foreground transition-colors"
-                }
-              >
-                Dashboard
-              </NavLink>
-            </li>
+            {localStorage.getItem("userRole") !== "admin" && (
+              <li>
+                <NavLink
+                  to="/dashboard"
+                  className={({ isActive }) =>
+                    isActive
+                      ? "text-foreground font-semibold"
+                      : "text-muted-foreground hover:text-foreground transition-colors"
+                  }
+                >
+                  Dashboard
+                </NavLink>
+              </li>
+            )}
+            {localStorage.getItem("userRole") === "admin" && (
+              <li>
+                <NavLink
+                  to="/admin"
+                  className={({ isActive }) =>
+                    isActive
+                      ? "text-foreground font-semibold"
+                      : "text-muted-foreground hover:text-foreground transition-colors"
+                  }
+                >
+                  Dashboard
+                </NavLink>
+              </li>
+            )}
           </ul>
 
           <nav className="flex items-center gap-2">
