@@ -7,5 +7,7 @@ const catchAsync = fn => (req, res, next) => {
 };
 
 router.get('/dashboard', catchAsync(adminController.getDashboardStats));
+router.get('/users', catchAsync(adminController.getUsers));
+router.get('/drivers', catchAsync(adminController.getDrivers));
 
 module.exports = router;
