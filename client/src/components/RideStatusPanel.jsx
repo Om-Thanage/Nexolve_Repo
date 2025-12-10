@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Phone, MessageSquare, Shield, CheckCircle2, Navigation as NavIcon, Car } from 'lucide-react';
 
-export default function RideStatusPanel({ ride, request, isDriver, onReset }) {
+export default function RideStatusPanel({ ride, request, isDriver, onReset, onDriverArrived }) {
     // Shared Status Panel for Rider & Driver
     const [otpInput, setOtpInput] = useState('');
     const [loading, setLoading] = useState(false);
@@ -14,7 +14,7 @@ export default function RideStatusPanel({ ride, request, isDriver, onReset }) {
         try {
             // Verify via update status
             // Assuming 'api' is globally available or imported elsewhere
-            await api.put(`/requests/${request._id}/status`, {
+            await api.put(`/ requests / ${request._id}/status`, {
                 status: 'ongoing',
                 otp: otpInput
             });
@@ -31,6 +31,14 @@ export default function RideStatusPanel({ ride, request, isDriver, onReset }) {
             // Assuming 'api' is globally available or imported elsewhere
             await api.put(`/requests/${request._id}/status`, { status: "completed" });
         } catch (e) { console.error(e) }
+    };
+
+    const handleArrived = async () => {
+        setLoading(true);
+        try {
+            await api.put(`/requests/${request._id}/status`, { status: "arrived" });
+        } catch (e) { console.error(e) }
+        setLoading(false);
     };
 
     if (paymentDone) {
@@ -57,8 +65,11 @@ export default function RideStatusPanel({ ride, request, isDriver, onReset }) {
     let subtitle = "";
 
     if (request.status === 'accepted') {
-        title = isDriver ? "Verify Rider" : "Driver is arriving";
-        subtitle = isDriver ? "Enter OTP from rider" : "Share OTP with driver";
+        title = isDriver ? "Pick up Rider" : "Driver is arriving";
+        subtitle = isDriver ? "Head to pickup location" : "Share OTP with driver";
+    } else if (request.status === 'arrived') {
+        title = isDriver ? "Verify Rider" : "Driver has Arrived!";
+        subtitle = isDriver ? "Enter OTP from rider" : "Meet your driver";
     } else if (request.status === 'ongoing') {
         title = isDriver ? "Drop-off Rider" : "Heading to destination";
         subtitle = isDriver ? "Navigate to destination" : "Enjoy your ride";
@@ -90,7 +101,31 @@ export default function RideStatusPanel({ ride, request, isDriver, onReset }) {
                 {request.status === 'accepted' && (
                     <div className="space-y-4">
                         {isDriver ? (
+                            <button
+                                onClick={handleArrived}
+                                disabled={loading}
+                                className="w-full py-3 bg-foreground text-background font-bold rounded-xl shadow-lg hover:opacity-90 disabled:opacity-50"
+                            >
+                                {loading ? 'Updating...' : 'I have Arrived'}
+                            </button>
+                        ) : (
+                            // Rider View (Waiting)
+                            <div className="bg-secondary/30 p-4 rounded-xl text-center space-y-2">
+                                <p className="text-sm text-muted-foreground">Driver is on the way</p>
+                                <div className="text-2xl font-bold text-primary">
+                                    {ride.vehicle?.model} • {ride.vehicle?.plateNumber || '....'}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* STATUS: ARRIVED */}
+                {request.status === 'arrived' && (
+                    <div className="space-y-4">
+                        {isDriver ? (
                             <>
+                                <p className="text-center text-sm text-muted-foreground">Ask rider for OTP</p>
                                 <input
                                     type="text"
                                     maxLength={4}
@@ -108,7 +143,7 @@ export default function RideStatusPanel({ ride, request, isDriver, onReset }) {
                                 </button>
                             </>
                         ) : (
-                            // Rider View
+                            // Rider View (Arrived - Show OTP)
                             <>
                                 <div className="bg-secondary/30 p-4 rounded-xl text-center space-y-2">
                                     <p className="text-sm text-muted-foreground">Share this OTP with {ride.host?.user?.name || 'Driver'}</p>
@@ -118,7 +153,7 @@ export default function RideStatusPanel({ ride, request, isDriver, onReset }) {
                                 </div>
                                 <div className="bg-blue-50 text-blue-700 p-3 rounded-lg text-sm flex items-start gap-2">
                                     <Shield size={16} className="mt-0.5" />
-                                    <p>Give this code to the driver ONLY when you have met them.</p>
+                                    <p>Driver is here! Give this code to start ride.</p>
                                 </div>
                             </>
                         )}

@@ -77,6 +77,11 @@ const rideRequestController = {
                 await notificationService.notifyRequestAccepted(request.user.email, driverUser ? driverUser.name : 'Your Driver');
             }
 
+            if (status === 'arrived') {
+                // Optional: Notify Rider that driver has arrived
+                // await notificationService.notifyDriverArrived(...)
+            }
+
             if (status === 'ongoing') {
                 // Verify OTP
                 const { otp } = req.body;

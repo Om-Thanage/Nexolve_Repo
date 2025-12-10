@@ -309,6 +309,18 @@ export default function Home() {
           request={activeDriverRequest}
           isDriver={true}
           onReset={handleRideReset}
+          onDriverArrived={() => {
+            // Teleport Driver to Pickup Location (Trip Start)
+            if (activeDriverRequest.trip?.startLocation?.coordinates) {
+              const [lng, lat] = activeDriverRequest.trip.startLocation.coordinates;
+              setUserLocation({ lat, lng });
+              setStartLocation({
+                address: activeDriverRequest.trip.startLocation.address,
+                coordinates: [lng, lat]
+              });
+              // Also force map center update if map component watches userLocation
+            }
+          }}
         />
       )}
 
