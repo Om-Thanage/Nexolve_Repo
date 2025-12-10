@@ -1,31 +1,71 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Phone, MessageSquare, Shield, CheckCircle2, Navigation as NavIcon } from 'lucide-react';
+import { Phone, MessageSquare, Shield, CheckCircle2, Navigation as NavIcon, Car } from 'lucide-react';
 
-export default function RideStatusPanel({ ride, onReset }) {
-    // States: 'meeting' -> 'otp' -> 'inprogress' -> 'payment' -> 'completed'
-    const [status, setStatus] = useState('meeting');
-    const [otp, setOtp] = useState(['', '', '', '']);
+export default function RideStatusPanel({ ride, request, isDriver, onReset }) {
+    // Shared Status Panel for Rider & Driver
+    const [otpInput, setOtpInput] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [paymentDone, setPaymentDone] = useState(false);
 
-    // Mock functionality for hackathon
-    const handleReached = () => setStatus('otp');
-
-    const verifyOtp = () => {
-        // Mock verification
-        if (otp.join('').length === 4) {
-            setStatus('inprogress');
+    const handleVerifyOtp = async () => {
+        if (otpInput.length !== 4) return alert("Enter 4 digits");
+        setLoading(true);
+        try {
+            // Verify via update status
+            // Assuming 'api' is globally available or imported elsewhere
+            await api.put(`/requests/${request._id}/status`, {
+                status: 'ongoing',
+                otp: otpInput
+            });
+            // Status update will be reflected via props/poll
+        } catch (e) {
+            alert(e.response?.data?.message || "Invalid OTP");
+        } finally {
+            setLoading(false);
         }
     };
 
-    const handleArrivedDest = () => setStatus('payment');
-
-    const handlePay = () => {
-        // Mock Payment
-        setStatus('completed');
-        setTimeout(() => {
-            onReset(); // Go back to home
-        }, 2000);
+    const handleEndRide = async () => {
+        try {
+            // Assuming 'api' is globally available or imported elsewhere
+            await api.put(`/requests/${request._id}/status`, { status: "completed" });
+        } catch (e) { console.error(e) }
     };
+
+    if (paymentDone) {
+        return (
+            <motion.div
+                initial={{ y: "100%" }}
+                animate={{ y: 0 }}
+                className="fixed bottom-0 left-0 right-0 z-40 bg-background rounded-t-3xl shadow-2xl p-6 text-center"
+            >
+                <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle2 size={32} />
+                </div>
+                <h3 className="text-xl font-bold mb-2">Thank you for riding!</h3>
+                <p className="text-muted-foreground mb-6">Your payment was successful.</p>
+                <button onClick={onReset} className="w-full py-3 bg-secondary font-bold rounded-xl hover:bg-secondary/80">
+                    Close
+                </button>
+            </motion.div>
+        )
+    }
+
+    // Dynamic Headers based on Role
+    let title = "";
+    let subtitle = "";
+
+    if (request.status === 'accepted') {
+        title = isDriver ? "Verify Rider" : "Driver is arriving";
+        subtitle = isDriver ? "Enter OTP from rider" : "Share OTP with driver";
+    } else if (request.status === 'ongoing') {
+        title = isDriver ? "Drop-off Rider" : "Heading to destination";
+        subtitle = isDriver ? "Navigate to destination" : "Enjoy your ride";
+    } else if (request.status === 'completed') {
+        title = "Ride Completed";
+        subtitle = "Payment due";
+    }
 
     return (
         <motion.div
@@ -33,13 +73,11 @@ export default function RideStatusPanel({ ride, onReset }) {
             animate={{ y: 0 }}
             className="fixed bottom-0 left-0 right-0 z-40 bg-background rounded-t-3xl shadow-[0_-10px_40px_-10px_rgba(0,0,0,0.2)] border-t border-border md:w-96 md:left-auto md:right-8 md:bottom-8 md:rounded-3xl flex flex-col overflow-hidden"
         >
-            {/* Header / Driver Info - Always Visible */}
+            {/* Header */}
             <div className="bg-primary text-primary-foreground p-4 flex items-center justify-between">
                 <div>
-                    <h3 className="font-bold text-lg">{status === 'meeting' ? 'Driver is arriving' : status === 'inprogress' ? 'Heading to destination' : status === 'otp' ? 'Verify Ride' : 'Ride Completed'}</h3>
-                    <p className="text-primary-foreground/80 text-sm">
-                        {status === 'meeting' ? '2 min away' : status === 'inprogress' ? '15 min remaining' : 'Please check details'}
-                    </p>
+                    <h3 className="font-bold text-lg">{title}</h3>
+                    <p className="text-primary-foreground/80 text-sm">{subtitle}</p>
                 </div>
                 <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
                     <NavIcon size={20} className="text-white" />
@@ -47,76 +85,84 @@ export default function RideStatusPanel({ ride, onReset }) {
             </div>
 
             <div className="p-5 space-y-6">
-                {/* Driver Actions - Only for Demo purposes we show 'I Reached' on User side 
-                     or we assume this UI is for the Rider and the Driver has a separate UI?
-                     User said: "once the user meets the rider(add a button on the rider's UI to have reached the user's location...)"
-                     Wait, user said "once user meets rider" -> User is usually the Rider? Or Driver?
-                     "User selects carpool... then once the user meets the rider... add a button on the rider's UI".
-                     I'll assume 'Rider' = current User.
-                     So Rider clicks "I've met the driver"? Or Driver marks "I've arrived"?
-                     "add a button on the rider's UI to have reached the user's location" -> This is ambiguous. 
-                     Usually Driver marks "Arrived". 
-                     But for hackathon single-screen flow, I will add "Driver Arrived" button here to simulate driver action.
-                 */}
 
-                {status === 'meeting' && (
+                {/* STATUS: ACCEPTED */}
+                {request.status === 'accepted' && (
                     <div className="space-y-4">
-                        <div className="bg-secondary/30 p-4 rounded-xl text-center space-y-2">
-                            <p className="text-sm text-muted-foreground">Share this OTP with driver</p>
-                            <div className="text-3xl font-mono font-bold tracking-widest text-primary">4812</div>
-                        </div>
-                        <button onClick={handleReached} className="w-full py-4 rounded-xl border-2 border-dashed border-muted-foreground/30 font-bold text-muted-foreground hover:bg-secondary/50 hover:text-foreground hover:border-foreground transition-all">
-                            🚧 Demo: Driver Arrived at Pickup
-                        </button>
+                        {isDriver ? (
+                            <>
+                                <input
+                                    type="text"
+                                    maxLength={4}
+                                    value={otpInput}
+                                    onChange={(e) => setOtpInput(e.target.value)}
+                                    className="w-full text-center text-4xl font-mono tracking-widest border border-border rounded-xl py-4 bg-secondary/20 focus:ring-2 focus:ring-primary outline-none"
+                                    placeholder="0000"
+                                />
+                                <button
+                                    onClick={handleVerifyOtp}
+                                    disabled={loading || otpInput.length < 4}
+                                    className="w-full py-3 bg-green-600 text-white font-bold rounded-xl shadow-lg hover:bg-green-700 disabled:opacity-50"
+                                >
+                                    {loading ? 'Verifying...' : 'Verify OTP'}
+                                </button>
+                            </>
+                        ) : (
+                            // Rider View
+                            <>
+                                <div className="bg-secondary/30 p-4 rounded-xl text-center space-y-2">
+                                    <p className="text-sm text-muted-foreground">Share this OTP with {ride.host?.user?.name || 'Driver'}</p>
+                                    <div className="text-4xl font-mono font-bold tracking-[0.5em] text-primary text-center pl-2">
+                                        {request.otp || '....'}
+                                    </div>
+                                </div>
+                                <div className="bg-blue-50 text-blue-700 p-3 rounded-lg text-sm flex items-start gap-2">
+                                    <Shield size={16} className="mt-0.5" />
+                                    <p>Give this code to the driver ONLY when you have met them.</p>
+                                </div>
+                            </>
+                        )}
                     </div>
                 )}
 
-                {status === 'otp' && (
-                    <div className="space-y-4">
-                        <p className="text-center font-medium">Driver entering OTP...</p>
-                        <div className="flex justify-center gap-3">
-                            <div className="w-3 h-3 bg-primary rounded-full animate-bounce delay-0"></div>
-                            <div className="w-3 h-3 bg-primary rounded-full animate-bounce delay-100"></div>
-                            <div className="w-3 h-3 bg-primary rounded-full animate-bounce delay-200"></div>
-                        </div>
-                        <button onClick={verifyOtp} className="w-full py-3 bg-green-600 text-white font-bold rounded-xl shadow-lg shadow-green-600/20 hover:bg-green-700">
-                            🚧 Demo: Verify OTP (Start Ride)
-                        </button>
-                    </div>
-                )}
-
-                {status === 'inprogress' && (
+                {/* STATUS: ONGOING */}
+                {request.status === 'ongoing' && (
                     <div className="space-y-4">
                         <div className="flex items-center gap-4 py-2">
-                            <Shield className="text-green-600" size={24} />
+                            <div className="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center">
+                                <Car size={24} />
+                            </div>
                             <div>
-                                <h4 className="font-bold text-sm">Ride is monitored</h4>
-                                <p className="text-xs text-muted-foreground">Emergency assistance available</p>
+                                <h4 className="font-bold text-sm">On the way</h4>
+                                <p className="text-xs text-muted-foreground">{isDriver ? "Drive carefully" : "You are in " + (ride.vehicle?.model || 'car')}</p>
                             </div>
                         </div>
-                        <button onClick={handleArrivedDest} className="w-full py-4 bg-primary text-primary-foreground font-bold rounded-xl shadow-lg hover:bg-primary/90">
-                            🚧 Demo: Reach Destination
-                        </button>
+                        {isDriver && (
+                            <button onClick={handleEndRide} className="w-full py-4 bg-red-600 text-white font-bold rounded-xl shadow-lg hover:bg-red-700">
+                                End Ride
+                            </button>
+                        )}
                     </div>
                 )}
 
-                {status === 'payment' && (
+                {/* STATUS: COMPLETED / PAYMENT */}
+                {request.status === 'completed' && (
                     <div className="space-y-4 text-center">
-                        <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto">
-                            <CheckCircle2 size={32} />
+                        <div className="py-4">
+                            <h2 className="text-3xl font-bold">₹{ride?.farePerSeat || 0}</h2>
+                            <p className="text-muted-foreground">Total Fare</p>
                         </div>
-                        <h2 className="text-2xl font-bold">₹{ride?.farePerSeat || 120}</h2>
-                        <p className="text-muted-foreground">Ride Completed</p>
-
-                        <button onClick={handlePay} className="w-full py-4 bg-foreground text-background font-bold rounded-xl hover:opacity-90">
-                            Pay Now
-                        </button>
-                    </div>
-                )}
-
-                {status === 'completed' && (
-                    <div className="text-center py-8">
-                        <h3 className="text-xl font-bold">Thank you for riding!</h3>
+                        {!isDriver && (
+                            <button
+                                onClick={() => setPaymentDone(true)}
+                                className="w-full py-4 bg-foreground text-background font-bold rounded-xl hover:opacity-90 shadow-lg"
+                            >
+                                Pay Now
+                            </button>
+                        )}
+                        {isDriver && (
+                            <div className="bg-green-100 text-green-800 p-3 rounded">Payment Pending from User</div>
+                        )}
                     </div>
                 )}
 

@@ -22,6 +22,9 @@ const rideRequestSchema = new mongoose.Schema({
     },
     notes: {
         type: String
+    },
+    otp: {
+        type: String,
     }
 }, { timestamps: true });
 

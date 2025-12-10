@@ -23,9 +23,10 @@ export default function Home() {
   const [viewState, setViewState] = useState('searching');
   const [isSearching, setIsSearching] = useState(false);
 
-
   const { user } = useUser();
   const [incomingRequest, setIncomingRequest] = useState(null);
+  const [activeDriverRequest, setActiveDriverRequest] = useState(null);
+  const [activeRiderRequest, setActiveRiderRequest] = useState(null);
   const [dbUser, setDbUser] = useState(null);
 
   useEffect(() => {
@@ -37,17 +38,59 @@ export default function Home() {
 
           if (!userId) {
             const uRes = await api.get(`/users/${user.id}`);
-            const userRes = await api.get(`/users/check/${user.id}`).catch(() => null);
-            if (userRes && userRes.data) {
-              setDbUser(userRes.data);
-              userId = userRes.data._id;
+            if (uRes && uRes.data) {
+              setDbUser(uRes.data);
+              userId = uRes.data._id;
             }
           }
 
           if (userId) {
-            const res = await api.get('/ride-requests/pending', { params: { userId } });
-            if (res.data && res.data.length > 0) {
-              setIncomingRequest(res.data[0]);
+            const res = await api.get('/requests/pending', { params: { userId } });
+
+            // 1. Incoming Requests (Driver)
+            if (res.data.incoming && res.data.incoming.length > 0) {
+              // Filter for 'requested' status for the modal
+              const requested = res.data.incoming.find(r => r.status === 'requested');
+              if (requested) setIncomingRequest(requested);
+
+              // Check for active driver tasks (accepted/ongoing)
+              const active = res.data.incoming.find(r => ['accepted', 'ongoing'].includes(r.status));
+              if (active) {
+                setActiveDriverRequest(active);
+                // Check viewState to avoid forcing view if user navigated away, but for hackathon auto-switch is good
+                if (viewState !== 'driver-active') setViewState('driver-active');
+              } else {
+                setActiveDriverRequest(null); // Clear if no active driver request
+                if (viewState === 'driver-active') setViewState('searching'); // Go back to searching if active driver request is gone
+              }
+            } else {
+              setIncomingRequest(null);
+              setActiveDriverRequest(null);
+              if (viewState === 'driver-active') setViewState('searching');
+            }
+
+            // 2. Outgoing Requests (Rider)
+            if (res.data.outgoing && res.data.outgoing.length > 0) {
+              // Check for my active requests
+              const myActive = res.data.outgoing.find(r => ['accepted', 'ongoing', 'completed'].includes(r.status));
+              // Also check 'requested' to show waiting state if selected
+              const myRequested = res.data.outgoing.find(r => r.status === 'requested');
+
+              if (myActive) {
+                setActiveRiderRequest(myActive);
+                // If I have an active ride, show panel
+                if (viewState !== 'ride') setViewState('ride');
+              } else if (myRequested) {
+                setActiveRiderRequest(myRequested);
+                // keep in ride state if waiting
+                if (viewState !== 'ride') setViewState('ride');
+              } else {
+                setActiveRiderRequest(null); // Clear if no active rider request
+                if (viewState === 'ride') setViewState('searching'); // Go back to searching if active rider request is gone
+              }
+            } else {
+              setActiveRiderRequest(null);
+              if (viewState === 'ride') setViewState('searching');
             }
           }
         } catch (e) {
@@ -55,15 +98,12 @@ export default function Home() {
         }
       };
 
-      interval = setInterval(checkRequests, 5000); // Check every 5s
+      interval = setInterval(checkRequests, 3000);
       checkRequests();
     }
     return () => clearInterval(interval);
-  }, [user, dbUser]);
+  }, [user, dbUser, viewState]);
 
-  // Load Google Maps script once here if needed for services, 
-  // but individual components use it too. 
-  // To ensure services (DirectionsService) work, we need to wait for load.
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
     googleMapsApiKey: import.meta.env.VITE_GMAPS_API_KEY,
@@ -94,14 +134,11 @@ export default function Home() {
 
   // 2. Fetch Directions & Rides when destination changes
   useEffect(() => {
-    if (isLoaded && userLocation && destination) {
+    if (isLoaded && userLocation && destination && viewState === 'searching') {
       const fetchRouteAndRides = async () => {
         setIsSearching(true);
-
-        // A. Calculate Route
         const directionsService = new window.google.maps.DirectionsService();
 
-        // Dest coords or address
         const destLocation = destination.coordinates
           ? { lat: destination.coordinates[1], lng: destination.coordinates[0] }
           : destination.address;
@@ -115,20 +152,10 @@ export default function Home() {
           async (result, status) => {
             if (status === window.google.maps.DirectionsStatus.OK) {
               setDirections(result);
-
-              // Extract distance/duration for mock pricing
-              const route = result.routes[0].legs[0];
-              const distanceKm = route.distance.value / 1000;
-              // const durationMins = route.duration.value / 60;
-
-
-            } else {
-              console.error(`Directions request failed: ${status}`);
             }
           }
         );
 
-        // C. Fetch Carpools 
         try {
           const startCoords = startLocation ? startLocation.coordinates : [userLocation.lng, userLocation.lat];
           const destCoords = destination.coordinates || [];
@@ -144,7 +171,7 @@ export default function Home() {
           }
 
           const res = await api.get("/trips/search", { params });
-          setRides(res.data || []);
+          setRides(res.data.candidates || res.data || []);
 
         } catch (e) {
           console.error("Failed to fetch carpools", e);
@@ -155,7 +182,7 @@ export default function Home() {
 
       fetchRouteAndRides();
     }
-  }, [isLoaded, userLocation, startLocation, destination]);
+  }, [isLoaded, userLocation, startLocation, destination, viewState]);
 
   const handleStartLocationSelect = (data) => {
     setStartLocation(data);
@@ -163,34 +190,29 @@ export default function Home() {
   };
 
   const handleDestinationSelect = (data) => {
-    // data = { address, coordinates: [lng, lat], place }
     setDestination(data);
-    setSelectedRideId(null); // Reset selection
+    setSelectedRideId(null);
     setViewState('searching');
   };
 
   const handleSelectOption = (option) => {
     setSelectedRideId(option.id || option._id);
     setSelectedRide(option.original || option);
-
-    // If it's a real trip (has _id and host), show details
     if (option.type === 'car') {
       setViewState('details');
     }
   };
 
-  const handleRequestRide = async () => {
-    // 1. Create Request
-    if (!selectedRide || !dbUser) return;
-
+  const handleRequestRide = async (ride) => {
+    if (!ride || !dbUser) return;
     try {
-      await api.post('/ride-requests', {
-        tripId: selectedRide._id,
+      const res = await api.post('/requests', {
+        tripId: ride._id,
         userId: dbUser._id,
         seatsNeeded: 1,
         note: "Looking for a ride!"
       });
-      // 2. Switch to 'ride' view (Meeting state)
+      setActiveRiderRequest({ ...res.data.request, status: 'requested' });
       setViewState('ride');
     } catch (e) {
       alert("Failed to request ride: " + (e.response?.data?.message || e.message));
@@ -200,12 +222,14 @@ export default function Home() {
   const handleAcceptRequest = async () => {
     if (!incomingRequest) return;
     try {
-      await api.put(`/ride-requests/${incomingRequest._id}/status`, { status: "accepted" });
+      const res = await api.put(`/requests/${incomingRequest._id}/status`, { status: "accepted" });
       setIncomingRequest(null);
-      alert("Ride Accepted! Please proceed to pickup location.");
-      // Ideally switch to Driver View here
+
+      setActiveDriverRequest(res.data.request);
+      setViewState('driver-active');
     } catch (e) {
       console.error(e);
+      alert("Error accepting ride");
     }
   };
 
@@ -216,6 +240,8 @@ export default function Home() {
     setStartLocation(null);
     setStartAddress("Current Location");
     setRides([]);
+    setActiveRiderRequest(null);
+    setActiveDriverRequest(null);
   };
 
   const handleUseCurrentLocation = () => {
@@ -230,7 +256,6 @@ export default function Home() {
 
   return (
     <div className="relative w-full h-[calc(100vh-64px)] overflow-hidden bg-background">
-      {/* 1. Map Background */}
       <MapBackground
         userLocation={userLocation}
         destination={destination}
@@ -238,43 +263,55 @@ export default function Home() {
         rides={rides}
       />
 
-      {/* 2. Top Search Bar */}
-      <HomeSearch
-        startLocationValue={startAddress}
-        onStartChange={(e) => setStartAddress(e.target.value)}
-        onStartSelect={handleStartLocationSelect}
-        onDestinationSelect={handleDestinationSelect}
-        onUseCurrentLocation={handleUseCurrentLocation}
-      />
-
-      {/* 3. Bottom Sheet Results */}
-      {viewState === 'searching' && (rides.length > 0) && destination && (
-        <RideOptionsList
-          rides={rides}
-          alternatives={[]}
-          selectedId={selectedRideId}
-          onSelect={handleSelectOption}
-        />
+      {/* Only show Search when not in active ride modes */}
+      {viewState === 'searching' && (
+        <>
+          <HomeSearch
+            startLocationValue={startAddress}
+            onStartChange={(e) => setStartAddress(e.target.value)}
+            onStartSelect={handleStartLocationSelect}
+            onDestinationSelect={handleDestinationSelect}
+            onUseCurrentLocation={handleUseCurrentLocation}
+          />
+          {rides.length > 0 && destination && (
+            <RideOptionsList
+              rides={rides}
+              alternatives={[]}
+              selectedId={selectedRideId}
+              onSelect={handleSelectOption}
+            />
+          )}
+        </>
       )}
 
-      {/* 4. Details View */}
       {viewState === 'details' && selectedRide && (
         <CarpoolDetails
           ride={selectedRide}
           onBack={() => setViewState('searching')}
-          onRequest={handleRequestRide}
+          onRequest={() => handleRequestRide(selectedRide)}
         />
       )}
 
-      {/* 5. Live Ride Status */}
-      {viewState === 'ride' && selectedRide && (
+      {/* Rider View */}
+      {viewState === 'ride' && activeRiderRequest && (
         <RideStatusPanel
-          ride={selectedRide}
+          ride={activeRiderRequest.trip} // Pass trip from populated request
+          request={activeRiderRequest}
+          isDriver={false}
           onReset={handleRideReset}
         />
       )}
 
-      {/* 6. Driver Modal */}
+      {/* Driver View */}
+      {viewState === 'driver-active' && activeDriverRequest && (
+        <RideStatusPanel
+          ride={activeDriverRequest.trip}
+          request={activeDriverRequest}
+          isDriver={true}
+          onReset={handleRideReset}
+        />
+      )}
+
       <DriverRequestModal
         request={incomingRequest}
         onAccept={handleAcceptRequest}

@@ -11,3 +11,5 @@ router.get('/pending', catchAsync(rideRequestController.getPendingRequests));
 router.put('/:id/status', catchAsync(rideRequestController.updateRequestStatus));
 
 module.exports = router;
+
+module.exports = router;
