@@ -2,16 +2,16 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import RideOptionCard from './RideOptionCard';
 
-export default function RideOptionsList({ rides, alternatives, onSelect, selectedId }) {
+export default function RideOptionsList({ rides, alternatives = [], onSelect, selectedId }) {
     const allOptions = [
         ...rides.map(r => ({
             id: r._id,
             type: 'car',
-            title: r.host?.user?.name || 'Carpool',
+            title: r.host?.vehicle?.model || 'Car',
             price: r.farePerSeat,
             seats: r.availableSeats,
             eta: Math.floor(Math.random() * 10) + 2, // Mock ETA for now
-            desc: 'Community Ride'
+            desc: r.host?.user?.name || 'Driver'
         })),
         ...alternatives
     ];

@@ -43,6 +43,11 @@ const tripSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
+    vehicle: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Vehicle',
+        required: true
+    },
     carbonSavings: {
         type: Number, // in kg CO2
         default: 0

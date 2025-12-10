@@ -6,10 +6,11 @@ const tripController = {
     createTrip: async (req, res) => {
         try {
             // Driver offers a ride
-            const { hostId, startLocation, endLocation, startTime, farePerSeat, availableSeats, routeGeometry } = req.body;
+            const { hostId, startLocation, endLocation, startTime, farePerSeat, availableSeats, routeGeometry, vehicle } = req.body;
 
             const trip = new Trip({
                 host: hostId,
+                vehicle, // Added vehicle reference
                 startLocation, // { type: 'Point', coordinates: [lng, lat], address: '' }
                 endLocation,
                 startTime,
@@ -33,7 +34,13 @@ const tripController = {
                 status: 'pending',
                 startTime: { $gte: new Date() },
                 availableSeats: { $gt: 0 }
-            }).populate('host').sort({ startTime: 1 });
+            }).populate({
+                path: 'host',
+                populate: [
+                    { path: 'vehicle', model: 'Vehicle' },
+                    { path: 'user', model: 'User' }
+                ]
+            }).sort({ startTime: 1 });
 
             res.status(200).json(trips);
         } catch (error) {
@@ -44,26 +51,56 @@ const tripController = {
     searchTrips: async (req, res) => {
         try {
             const { startLat, startLng, endLat, endLng, startTime } = req.query;
+            const radiusKm = 5; // Search within 5km of start
+            const endRadiusKm = 5; // Search within 5km of destination
 
-            // 1. Find potential candidate trips from DB (e.g., future trips, has seats)
-            // Ideally use geospatial query here to filter broadly first
-            const candidates = await Trip.find({
+            if (!startLat || !startLng) {
+                return res.status(400).json({ message: 'Start coordinates required' });
+            }
+
+            // 1. Find trips starting near the user's start location
+            // Note: MongoDB requires a 2dsphere index on startLocation for $near
+            let candidates = await Trip.find({
+                startLocation: {
+                    $near: {
+                        $geometry: {
+                            type: "Point",
+                            coordinates: [parseFloat(startLng), parseFloat(startLat)]
+                        },
+                        $maxDistance: radiusKm * 1000 // meters
+                    }
+                },
                 status: { $in: ['pending', 'scheduled'] },
-                startTime: { $gte: new Date(startTime) },
-                availableSeats: { $gt: 0 }
-            }).populate('host');
+                availableSeats: { $gt: 0 },
+                // Optional: Filter by time if provided
+                // startTime: { $gte: new Date(startTime || Date.now()) } 
+            }).populate({
+                path: 'host',
+                populate: [
+                    { path: 'vehicle', model: 'Vehicle' },
+                    { path: 'user', model: 'User' }
+                ]
+            });
 
-            // 2. Use matching service to score/rank
-            const requestCriteria = {
-                startLocation: [parseFloat(startLng), parseFloat(startLat)],
-                endLocation: [parseFloat(endLng), parseFloat(endLat)],
-                startTime: new Date(startTime)
-            };
+            // 2. Filter by end location if provided
+            if (endLat && endLng) {
+                const { getDistance } = require('geolib');
+                candidates = candidates.filter(trip => {
+                    if (!trip.endLocation || !trip.endLocation.coordinates) return false;
 
-            const matches = await matchingService.findMatches(candidates, requestCriteria);
+                    const dist = getDistance(
+                        { latitude: parseFloat(endLat), longitude: parseFloat(endLng) },
+                        { latitude: trip.endLocation.coordinates[1], longitude: trip.endLocation.coordinates[0] }
+                    );
 
-            res.status(200).json(matches);
+                    // Convert meters to km and check
+                    return dist <= (endRadiusKm * 1000);
+                });
+            }
+
+            res.status(200).json(candidates);
         } catch (error) {
+            console.error("Search Error:", error);
             res.status(500).json({ message: 'Server error', error: error.message });
         }
     },

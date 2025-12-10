@@ -7,6 +7,7 @@ const catchAsync = fn => (req, res, next) => {
 };
 
 router.post('/', catchAsync(rideRequestController.createRequest));
+router.get('/pending', catchAsync(rideRequestController.getPendingRequests));
 router.put('/:id/status', catchAsync(rideRequestController.updateRequestStatus));
 
 module.exports = router;

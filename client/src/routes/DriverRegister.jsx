@@ -5,8 +5,6 @@ import { useNavigate } from "react-router-dom";
 export default function DriverRegister() {
   const [license, setLicense] = useState("");
   const [expiry, setExpiry] = useState("");
-  const [vehicleModel, setVehicleModel] = useState("");
-  const [plate, setPlate] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -70,33 +68,6 @@ export default function DriverRegister() {
                   type="date"
                   value={expiry}
                   onChange={(e) => setExpiry(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="text-sm font-medium leading-none">
-                  Vehicle Model
-                </label>
-                <input
-                  required
-                  value={vehicleModel}
-                  onChange={(e) => setVehicleModel(e.target.value)}
-                  placeholder="e.g. Toyota Prius"
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium leading-none">
-                  License Plate
-                </label>
-                <input
-                  required
-                  value={plate}
-                  onChange={(e) => setPlate(e.target.value)}
-                  placeholder="e.g. ABC-1234"
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 />
               </div>

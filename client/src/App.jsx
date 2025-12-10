@@ -5,6 +5,7 @@ import Search from "./routes/Search";
 import TripDetails from "./routes/TripDetails";
 import CreateTrip from "./routes/CreateTrip";
 import DriverRegister from "./routes/DriverRegister";
+import MyVehicles from "./routes/MyVehicles";
 import Dashboard from "./routes/Dashboard";
 import Login from "./routes/Login";
 import Signup from "./routes/Signup";
@@ -22,6 +23,7 @@ export default function App() {
           <Route path="/trips/:id" element={<TripDetails />} />
           <Route path="/create-trip" element={<CreateTrip />} />
           <Route path="/driver/register" element={<DriverRegister />} />
+          <Route path="/driver/vehicles" element={<MyVehicles />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />

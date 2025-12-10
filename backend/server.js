@@ -15,6 +15,7 @@ const tripRoutes = require('./routes/tripRoutes');
 const rideRequestRoutes = require('./routes/rideRequestRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const vehicleRoutes = require('./routes/vehicleRoutes');
 
 app.use(cors());
 app.use(express.json());
@@ -30,6 +31,7 @@ app.use('/api/trips', tripRoutes);
 app.use('/api/requests', rideRequestRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/vehicles', vehicleRoutes);
 
 app.get("/", (req, res) => {
     res.json({ message: "Hello World!" });

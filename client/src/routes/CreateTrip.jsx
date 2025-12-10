@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import api from "../api";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import LocationSearchInput from "../components/LocationSearchInput";
+import VehicleForm from "../components/VehicleForm";
 
 export default function CreateTrip() {
   const [startLoc, setStartLoc] = useState({ address: "", coordinates: [0, 0] });
@@ -9,37 +10,106 @@ export default function CreateTrip() {
   const [startTime, setStartTime] = useState("");
   const [fare, setFare] = useState(50);
   const [seats, setSeats] = useState(3);
+  const [vehicleId, setVehicleId] = useState("");
+  const [vehicles, setVehicles] = useState([]);
+  const [showVehicleForm, setShowVehicleForm] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [driverId, setDriverId] = useState(null);
+  const [isDriver, setIsDriver] = useState(null); // null=loading, true=yes, false=no
   const navigate = useNavigate();
+
+  useEffect(() => {
+    checkDriverStatus();
+  }, []);
+
+  const checkDriverStatus = async () => {
+    try {
+      const userId = localStorage.getItem("userId");
+      if (!userId) {
+        setIsDriver(false);
+        return;
+      }
+
+      const res = await api.get(`/drivers/user/${userId}`);
+      setDriverId(res.data._id);
+      setIsDriver(true);
+      // Fetch vehicles immediately with the ID
+      fetchVehicles(res.data._id);
+    } catch (error) {
+      console.error("Driver check error:", error);
+      setIsDriver(false);
+    }
+  };
+
+  const fetchVehicles = async (id) => {
+    try {
+      const res = await api.get(`/vehicles?driverId=${id}`);
+      setVehicles(res.data);
+      if (res.data.length > 0 && !vehicleId) {
+        setVehicleId(res.data[0]._id);
+      }
+    } catch (error) {
+      console.error("Error fetching vehicles:", error);
+    }
+  };
+
+  const handleVehicleAdded = (newVehicle) => {
+    setShowVehicleForm(false);
+    // Refresh list or optimistically add
+    if (newVehicle) {
+      setVehicles(prev => [...prev, newVehicle]);
+      setVehicleId(newVehicle._id);
+    } else {
+      fetchVehicles(driverId);
+    }
+  };
 
   const submit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      // In production you'd geocode addresses into coords before sending
-      // Mock hostId if not in localStorage for demo purposes, or handle error
-      const hostId =
-        localStorage.getItem("driverId") || "6753176d0f81d89843640274"; // Fallback to a mock ID or handle auth check
+      if (!isDriver || !driverId) {
+        alert("You must be a registered driver to offer a trip.");
+        return;
+      }
+      if (!vehicleId) {
+        alert("Please select a vehicle.");
+        return;
+      }
 
       const payload = {
-        hostId,
+        hostId: driverId,
         startLocation: startLoc,
         endLocation: endLoc,
         startTime,
         farePerSeat: fare,
         availableSeats: seats,
+        vehicle: vehicleId
       };
 
       const res = await api.post("/trips", payload);
-      // alert("Trip created");
       navigate(`/trips/${res.data.trip._id}`);
     } catch (e) {
       console.error(e);
-      alert("Error creating trip. Ensure you are a registered driver.");
+      alert("Error creating trip. Ensure all fields are valid.");
     } finally {
       setLoading(false);
     }
   };
+
+  if (isDriver === false) {
+    return (
+      <div className="container mx-auto max-w-2xl py-12 px-4">
+        <div className="rounded-xl border border-yellow-200 bg-yellow-50 p-6 text-yellow-800">
+          <h2 className="text-xl font-bold mb-2">Driver Registration Required</h2>
+          <p className="mb-4">You need to register as a driver before you can offer trips or add vehicles.</p>
+          <Link to="/driver/register" className="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700 inline-block">
+            Register as a Driver
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto max-w-2xl py-12 px-4">
@@ -123,6 +193,49 @@ export default function CreateTrip() {
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium leading-none block mb-2">
+                Select Vehicle
+              </label>
+
+              {/* Only show vehicle selection if driver is verified (which is handled by main render, but safe to keep check) */}
+              {vehicles.length > 0 ? (
+                <select
+                  value={vehicleId}
+                  onChange={(e) => setVehicleId(e.target.value)}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <option value="" disabled>Select a vehicle</option>
+                  {vehicles.map(v => (
+                    <option key={v._id} value={v._id}>
+                      {v.model} ({v.plateNumber}) - {v.fuelType}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <div className="text-sm text-yellow-600 mb-2">
+                  <p>No vehicles found. You need to add a vehicle to offer a ride.</p>
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setShowVehicleForm(!showVehicleForm)}
+                className="text-sm text-primary hover:underline mt-2"
+              >
+                {showVehicleForm ? "Cancel Adding Vehicle" : "+ Add New Vehicle"}
+              </button>
+
+              {showVehicleForm && (
+                <div className="mt-4 border p-4 rounded bg-accent/10">
+                  <VehicleForm
+                    driverId={driverId}
+                    onClose={handleVehicleAdded}
+                  />
+                </div>
+              )}
             </div>
 
             <div className="pt-4">

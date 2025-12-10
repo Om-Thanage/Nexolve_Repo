@@ -12,8 +12,8 @@ export default function RideOptionCard({ option, onClick, selected }) {
             whileTap={{ scale: 0.98 }}
             onClick={onClick}
             className={`relative flex items-center justify-between p-4 rounded-xl cursor-pointer transition-all ${isSelected
-                    ? 'bg-primary/10 border-2 border-primary shadow-sm'
-                    : 'bg-card border border-border hover:bg-secondary/50'
+                ? 'bg-primary/10 border-2 border-primary shadow-sm'
+                : 'bg-card border border-border hover:bg-secondary/50'
                 }`}
         >
             <div className="flex items-center gap-4">
@@ -25,7 +25,7 @@ export default function RideOptionCard({ option, onClick, selected }) {
                 {/* Details */}
                 <div>
                     <h3 className="font-bold text-base flex items-center gap-2">
-                        {option.title || "Carpool"}
+                        {option.title || "Ryde"}
                         {option.seats && (
                             <span className="text-xs font-normal bg-background px-2 py-0.5 rounded-full border border-border flex items-center gap-1">
                                 <User size={10} /> {option.seats}

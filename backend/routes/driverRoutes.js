@@ -7,6 +7,7 @@ const catchAsync = fn => (req, res, next) => {
 };
 
 router.post('/register', catchAsync(driverController.registerDriver));
+router.get('/user/:userId', catchAsync(driverController.getDriverByUserId));
 router.get('/:id', catchAsync(driverController.getDriverDetails));
 
 module.exports = router;

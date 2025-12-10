@@ -8,7 +8,7 @@ export default function Navbar() {
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link to="/" className="mr-6 flex items-center space-x-2">
           <span className="font-bold text-xl tracking-tight text-foreground">
-            Carpool
+            Ryde
           </span>
         </Link>
 
@@ -61,6 +61,18 @@ export default function Navbar() {
                 }
               >
                 Dashboard
+              </NavLink>
+            </li>
+            <li>
+              <NavLink
+                to="/driver/vehicles"
+                className={({ isActive }) =>
+                  isActive
+                    ? "text-foreground font-semibold"
+                    : "text-muted-foreground hover:text-foreground transition-colors"
+                }
+              >
+                My Vehicles
               </NavLink>
             </li>
           </ul>
