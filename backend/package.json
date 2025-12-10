@@ -13,11 +13,16 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@googlemaps/routing": "^2.1.1",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
+    "geolib": "^3.3.4",
     "mongoose": "^9.0.1",
+    "node-cron": "^4.2.1",
+    "nodemailer": "^7.0.11",
     "nodemon": "^3.1.11",
-    "prisma": "^7.1.0"
+    "prisma": "^7.1.0",
+    "razorpay": "^2.9.6"
   }
 }
