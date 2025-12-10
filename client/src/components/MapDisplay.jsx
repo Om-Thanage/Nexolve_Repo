@@ -12,7 +12,7 @@ const libraries = ['places'];
 export default function MapDisplay({ startLocation, endLocation }) {
     const { isLoaded } = useJsApiLoader({
         id: 'google-map-script',
-        googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+        googleMapsApiKey: import.meta.env.VITE_GMAPS_API_KEY,
         libraries,
     });
 
