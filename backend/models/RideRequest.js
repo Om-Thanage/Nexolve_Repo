@@ -22,6 +22,7 @@ const rideRequestSchema = new mongoose.Schema(
         "rejected",
         "cancelled",
         "completed",
+        "payment-pending",
       ],
       default: "requested",
     },

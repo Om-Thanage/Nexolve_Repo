@@ -74,7 +74,7 @@ export default function RideStatusPanel({
   const handleEndRide = async () => {
     try {
       // Assuming 'api' is globally available or imported elsewhere
-      await api.put(`/requests/${request._id}/status`, { status: "completed" });
+      await api.put(`/requests/${request._id}/status`, { status: "payment-pending" });
     } catch (e) {
       console.error(e);
     }
