@@ -77,7 +77,7 @@ export default function DriverActiveRidePanel({
     if (!window.confirm("End ride for this passenger?")) return;
     setLoading(true);
     try {
-      await api.put(`/requests/${requestId}/status`, { status: "completed" });
+      await api.put(`/requests/${requestId}/status`, { status: "payment-pending" });
     } catch (e) {
       console.error(e);
     }
@@ -91,7 +91,7 @@ export default function DriverActiveRidePanel({
       const active = requests.filter((r) => r.status === "ongoing");
       await Promise.all(
         active.map((r) =>
-          api.put(`/requests/${r._id}/status`, { status: "completed" })
+          api.put(`/requests/${r._id}/status`, { status: "payment-pending" })
         )
       );
     } catch (e) {
@@ -105,7 +105,7 @@ export default function DriverActiveRidePanel({
   // Let's show: accepted, arrived, ongoing. Completed can be history or a separate tab.
   // implementation_plan says: "List all passengers with their current status"
   const activeRequests = requests.filter((r) =>
-    ["accepted", "arrived", "ongoing"].includes(r.status)
+    ["accepted", "arrived", "ongoing", "payment-pending"].includes(r.status)
   );
   const completedRequests = requests.filter((r) => r.status === "completed");
 

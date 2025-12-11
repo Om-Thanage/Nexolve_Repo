@@ -59,7 +59,7 @@ export default function Home() {
               // Actually, simply filtering for relevant statuses is best:
               const activeReqs = res.data.incoming.filter(
                 (r) =>
-                  ["accepted", "arrived", "ongoing", "completed"].includes(
+                  ["accepted", "arrived", "ongoing", "completed", "payment-pending"].includes(
                     r.status
                   ) && r.trip?.status !== "completed"
               );
@@ -83,7 +83,7 @@ export default function Home() {
               // Check for my active requests
               const myActive = res.data.outgoing.find(
                 (r) =>
-                  ["accepted", "arrived", "ongoing", "completed"].includes(
+                  ["accepted", "arrived", "ongoing", "completed", "payment-pending"].includes(
                     r.status
                   ) && r.trip?.status !== "completed"
               );
