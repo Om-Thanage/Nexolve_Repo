@@ -132,7 +132,16 @@ const rideRequestController = {
         user: userId,
       })
         .populate("user")
-        .populate("trip");
+        .populate({
+          path: "trip",
+          populate: {
+            path: "host",
+            populate: {
+              path: "user",
+              model: "User",
+            },
+          },
+        });
 
       // Filter out 'completed' requests that are also 'paid' (archived in effect)
       // Filter out 'archived' requests
