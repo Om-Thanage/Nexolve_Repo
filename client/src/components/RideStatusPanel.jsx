@@ -46,6 +46,41 @@ export default function RideStatusPanel({ ride, request, isDriver, onReset, onDr
         setLoading(false);
     };
 
+    const handlePayment = async () => {
+        setLoading(true);
+        try {
+            const userId = localStorage.getItem("userId");
+            if (!userId) {
+                alert("User session not found. Please log in again.");
+                return;
+            }
+
+            // Note: tripId is typically available in the 'ride' object
+            const res = await api.post('/payments/split', {
+                tripId: ride._id,
+                userIds: [userId],
+                totalAmount: ride.farePerSeat
+            });
+
+            if (res.data.payments && res.data.payments.length > 0) {
+                // Redirect user to the Razorpay Payment Link (short_url)
+                const paymentUrl = res.data.payments[0].transactionId;
+                if (paymentUrl) {
+                    window.location.href = paymentUrl;
+                } else {
+                    alert("Payment link generation failed.");
+                }
+            } else {
+                alert("Failed to initiate payment.");
+            }
+        } catch (e) {
+            console.error("Payment Error:", e);
+            alert("Error initiating payment. Please try again.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     if (paymentDone) {
         return (
             <motion.div
@@ -202,10 +237,11 @@ export default function RideStatusPanel({ ride, request, isDriver, onReset, onDr
                         </div>
                         {!isDriver && (
                             <button
-                                onClick={() => setPaymentDone(true)}
-                                className="w-full py-4 bg-foreground text-background font-bold rounded-xl hover:opacity-90 shadow-lg"
+                                onClick={handlePayment}
+                                disabled={loading}
+                                className="w-full py-4 bg-foreground text-background font-bold rounded-xl hover:opacity-90 shadow-lg disabled:opacity-50"
                             >
-                                Pay Now
+                                {loading ? 'Processing...' : 'Pay Now'}
                             </button>
                         )}
                         {isDriver && (
