@@ -5,6 +5,7 @@ import HomeSearch from "../components/HomeSearch";
 import RideOptionsList from "../components/RideOptionsList";
 import CarpoolDetails from "../components/CarpoolDetails";
 import RideStatusPanel from "../components/RideStatusPanel";
+import DriverActiveRidePanel from "../components/DriverActiveRidePanel"; // [NEW]
 import DriverRequestModal from "../components/DriverRequestModal";
 import { useJsApiLoader } from "@react-google-maps/api";
 import { useUser } from "@clerk/clerk-react";
@@ -25,7 +26,7 @@ export default function Home() {
 
   const { user } = useUser();
   const [incomingRequest, setIncomingRequest] = useState(null);
-  const [activeDriverRequest, setActiveDriverRequest] = useState(null);
+  const [activeDriverRequests, setActiveDriverRequests] = useState([]); // [MODIFIED] Array
   const [activeRiderRequest, setActiveRiderRequest] = useState(null);
   const [dbUser, setDbUser] = useState(null);
 
@@ -53,19 +54,22 @@ export default function Home() {
               const requested = res.data.incoming.find(r => r.status === 'requested');
               if (requested) setIncomingRequest(requested);
 
-              // Check for active driver tasks (accepted/ongoing/completed)
-              const active = res.data.incoming.find(r => ['accepted', 'arrived', 'ongoing', 'completed'].includes(r.status));
-              if (active) {
-                setActiveDriverRequest(active);
+              // Check for active driver tasks (accepted/ongoing/completed/arrived)
+              // We want ALL requests that are not just 'requested' or 'cancelled' (unless we want to show cancelled history)
+              // Actually, simply filtering for relevant statuses is best:
+              const activeReqs = res.data.incoming.filter(r => ['accepted', 'arrived', 'ongoing', 'completed'].includes(r.status));
+
+              if (activeReqs.length > 0) {
+                setActiveDriverRequests(activeReqs);
                 // Check viewState to avoid forcing view if user navigated away, but for hackathon auto-switch is good
                 if (viewState !== 'driver-active') setViewState('driver-active');
               } else {
-                setActiveDriverRequest(null); // Clear if no active driver request
-                if (viewState === 'driver-active') setViewState('searching'); // Go back to searching if active driver request is gone
+                setActiveDriverRequests([]); // Clear if no active
+                if (viewState === 'driver-active') setViewState('searching');
               }
             } else {
               setIncomingRequest(null);
-              setActiveDriverRequest(null);
+              setActiveDriverRequests([]);
               if (viewState === 'driver-active') setViewState('searching');
             }
 
@@ -225,7 +229,8 @@ export default function Home() {
       const res = await api.put(`/requests/${incomingRequest._id}/status`, { status: "accepted" });
       setIncomingRequest(null);
 
-      setActiveDriverRequest(res.data.request);
+      // Add to active list immediately
+      setActiveDriverRequests(prev => [...prev, res.data.request]);
       setViewState('driver-active');
     } catch (e) {
       console.error(e);
@@ -241,7 +246,7 @@ export default function Home() {
     setStartAddress("Current Location");
     setRides([]);
     setActiveRiderRequest(null);
-    setActiveDriverRequest(null);
+    setActiveDriverRequests([]);
   };
 
   const handleUseCurrentLocation = () => {
@@ -303,22 +308,22 @@ export default function Home() {
       )}
 
       {/* Driver View */}
-      {viewState === 'driver-active' && activeDriverRequest && (
-        <RideStatusPanel
-          ride={activeDriverRequest.trip}
-          request={activeDriverRequest}
-          isDriver={true}
+      {viewState === 'driver-active' && activeDriverRequests.length > 0 && (
+        <DriverActiveRidePanel
+          trip={activeDriverRequests[0].trip} // Trip info from first req
+          requests={activeDriverRequests}
           onReset={handleRideReset}
           onDriverArrived={() => {
             // Teleport Driver to Pickup Location (Trip Start)
-            if (activeDriverRequest.trip?.startLocation?.coordinates) {
-              const [lng, lat] = activeDriverRequest.trip.startLocation.coordinates;
+            // Use trip from first request
+            const trip = activeDriverRequests[0].trip;
+            if (trip?.startLocation?.coordinates) {
+              const [lng, lat] = trip.startLocation.coordinates;
               setUserLocation({ lat, lng });
               setStartLocation({
-                address: activeDriverRequest.trip.startLocation.address,
+                address: trip.startLocation.address,
                 coordinates: [lng, lat]
               });
-              // Also force map center update if map component watches userLocation
             }
           }}
         />
