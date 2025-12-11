@@ -11,5 +11,6 @@ router.get('/', catchAsync(tripController.getAllTrips));
 router.get('/search', catchAsync(tripController.searchTrips));
 router.get('/:id', catchAsync(tripController.getTripDetails));
 router.put('/:id/status', catchAsync(tripController.updateTripStatus));
+router.get('/host/:hostId', catchAsync(tripController.getTripsByHost));
 
 module.exports = router;

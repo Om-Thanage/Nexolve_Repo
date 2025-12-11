@@ -3,6 +3,7 @@ import api from "../api";
 import { useNavigate, Link } from "react-router-dom";
 import LocationSearchInput from "../components/LocationSearchInput";
 import VehicleForm from "../components/VehicleForm";
+import TripCard from "../components/TripCard";
 
 export default function CreateTrip() {
   const [startLoc, setStartLoc] = useState({ address: "", coordinates: [0, 0] });
@@ -16,6 +17,7 @@ export default function CreateTrip() {
   const [loading, setLoading] = useState(false);
   const [driverId, setDriverId] = useState(null);
   const [isDriver, setIsDriver] = useState(null); // null=loading, true=yes, false=no
+  const [previousTrips, setPreviousTrips] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -35,6 +37,7 @@ export default function CreateTrip() {
       setIsDriver(true);
       // Fetch vehicles immediately with the ID
       fetchVehicles(res.data._id);
+      fetchHostTrips(res.data._id);
     } catch (error) {
       console.error("Driver check error:", error);
       setIsDriver(false);
@@ -50,6 +53,15 @@ export default function CreateTrip() {
       }
     } catch (error) {
       console.error("Error fetching vehicles:", error);
+    }
+  };
+
+  const fetchHostTrips = async (id) => {
+    try {
+      const res = await api.get(`/trips/host/${id}`);
+      setPreviousTrips(res.data);
+    } catch (error) {
+      console.error("Error fetching host trips:", error);
     }
   };
 
@@ -112,142 +124,160 @@ export default function CreateTrip() {
   }
 
   return (
-    <div className="container mx-auto max-w-2xl py-12 px-4">
-      <div className="rounded-xl border border-border bg-card text-card-foreground shadow-sm">
-        <div className="p-6 space-y-1">
-          <h2 className="text-2xl font-bold tracking-tight">Offer a Trip</h2>
-          <p className="text-sm text-muted-foreground">
-            Share your journey and earn money.
-          </p>
-        </div>
+    <div className="container mx-auto max-w-7xl py-12 px-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+        {/* Left Column: Form */}
+        <div className="rounded-xl border border-border bg-card text-card-foreground shadow-sm">
+          <div className="p-6 space-y-1">
+            <h2 className="text-2xl font-bold tracking-tight">Offer a Trip</h2>
+            <p className="text-sm text-muted-foreground">
+              Share your journey and earn money.
+            </p>
+          </div>
 
-        <div className="p-6 pt-0">
-          <form onSubmit={submit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="text-sm font-medium leading-none">
-                  From Address
-                </label>
-                <LocationSearchInput
-                  required
-                  value={startLoc.address}
-                  onChange={(e) => setStartLoc({ ...startLoc, address: e.target.value })}
-                  onSelect={(data) => setStartLoc({ address: data.address, coordinates: data.coordinates })}
-                  placeholder="e.g. 123 Main St"
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium leading-none">
-                  To Address
-                </label>
-                <LocationSearchInput
-                  required
-                  value={endLoc.address}
-                  onChange={(e) => setEndLoc({ ...endLoc, address: e.target.value })}
-                  onSelect={(data) => setEndLoc({ address: data.address, coordinates: data.coordinates })}
-                  placeholder="e.g. 456 Corporate Blvd"
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium leading-none">
-                Start Time
-              </label>
-              <input
-                required
-                type="datetime-local"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="text-sm font-medium leading-none">
-                  Fare per Seat (₹)
-                </label>
-                <input
-                  required
-                  type="number"
-                  min="0"
-                  value={fare}
-                  onChange={(e) => setFare(Number(e.target.value))}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium leading-none">
-                  Available Seats
-                </label>
-                <input
-                  required
-                  type="number"
-                  min="1"
-                  max="8"
-                  value={seats}
-                  onChange={(e) => setSeats(Number(e.target.value))}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium leading-none block mb-2">
-                Select Vehicle
-              </label>
-
-              {/* Only show vehicle selection if driver is verified (which is handled by main render, but safe to keep check) */}
-              {vehicles.length > 0 ? (
-                <select
-                  value={vehicleId}
-                  onChange={(e) => setVehicleId(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <option value="" disabled>Select a vehicle</option>
-                  {vehicles.map(v => (
-                    <option key={v._id} value={v._id}>
-                      {v.model} ({v.plateNumber}) - {v.fuelType}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <div className="text-sm text-yellow-600 mb-2">
-                  <p>No vehicles found. You need to add a vehicle to offer a ride.</p>
-                </div>
-              )}
-
-              <button
-                type="button"
-                onClick={() => setShowVehicleForm(!showVehicleForm)}
-                className="text-sm text-primary hover:underline mt-2"
-              >
-                {showVehicleForm ? "Cancel Adding Vehicle" : "+ Add New Vehicle"}
-              </button>
-
-              {showVehicleForm && (
-                <div className="mt-4 border p-4 rounded bg-accent/10">
-                  <VehicleForm
-                    driverId={driverId}
-                    onClose={handleVehicleAdded}
+          <div className="p-6 pt-0">
+            <form onSubmit={submit} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium leading-none">
+                    From Address
+                  </label>
+                  <LocationSearchInput
+                    required
+                    value={startLoc.address}
+                    onChange={(e) => setStartLoc({ ...startLoc, address: e.target.value })}
+                    onSelect={(data) => setStartLoc({ address: data.address, coordinates: data.coordinates })}
+                    placeholder="e.g. 123 Main St"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   />
                 </div>
-              )}
-            </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium leading-none">
+                    To Address
+                  </label>
+                  <LocationSearchInput
+                    required
+                    value={endLoc.address}
+                    onChange={(e) => setEndLoc({ ...endLoc, address: e.target.value })}
+                    onSelect={(data) => setEndLoc({ address: data.address, coordinates: data.coordinates })}
+                    placeholder="e.g. 456 Corporate Blvd"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  />
+                </div>
+              </div>
 
-            <div className="pt-4">
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
-              >
-                {loading ? "Creating Trip..." : "Create Trip"}
-              </button>
+              <div className="space-y-2">
+                <label className="text-sm font-medium leading-none">
+                  Start Time
+                </label>
+                <input
+                  required
+                  type="datetime-local"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium leading-none">
+                    Fare per Seat (₹)
+                  </label>
+                  <input
+                    required
+                    type="number"
+                    min="0"
+                    value={fare}
+                    onChange={(e) => setFare(Number(e.target.value))}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium leading-none">
+                    Available Seats
+                  </label>
+                  <input
+                    required
+                    type="number"
+                    min="1"
+                    max="8"
+                    value={seats}
+                    onChange={(e) => setSeats(Number(e.target.value))}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium leading-none block mb-2">
+                  Select Vehicle
+                </label>
+
+                {vehicles.length > 0 ? (
+                  <select
+                    value={vehicleId}
+                    onChange={(e) => setVehicleId(e.target.value)}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="" disabled>Select a vehicle</option>
+                    {vehicles.map(v => (
+                      <option key={v._id} value={v._id}>
+                        {v.model} ({v.plateNumber}) - {v.fuelType}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <div className="text-sm text-yellow-600 mb-2">
+                    <p>No vehicles found. You need to add a vehicle to offer a ride.</p>
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => setShowVehicleForm(!showVehicleForm)}
+                  className="text-sm text-primary hover:underline mt-2"
+                >
+                  {showVehicleForm ? "Cancel Adding Vehicle" : "+ Add New Vehicle"}
+                </button>
+
+                {showVehicleForm && (
+                  <div className="mt-4 border p-4 rounded bg-accent/10">
+                    <VehicleForm
+                      driverId={driverId}
+                      onClose={handleVehicleAdded}
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="pt-4">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+                >
+                  {loading ? "Creating Trip..." : "Create Trip"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        {/* Right Column: Previous Trip */}
+        <div className="space-y-4">
+          {previousTrips.length > 0 ? (
+            <>
+              {previousTrips.map((trip) => (
+                <TripCard key={trip.id} trip={trip} />
+              ))}
+            </>
+          ) : (
+            <div className="rounded-xl border border-dashed p-8 text-center text-muted-foreground">
+              <h3 className="text-lg font-medium">No Previous Trips</h3>
+              <p>Your trip history will appear here once you complete your first trip.</p>
             </div>
-          </form>
+          )}
         </div>
       </div>
     </div>

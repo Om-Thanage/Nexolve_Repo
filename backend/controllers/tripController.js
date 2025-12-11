@@ -146,6 +146,23 @@ const tripController = {
         } catch (error) {
             res.status(500).json({ message: 'Server error', error: error.message });
         }
+    },
+
+    getTripsByHost: async (req, res) => {
+        try {
+            const { hostId } = req.params;
+            const trips = await Trip.find({ host: hostId })
+                .populate('vehicle')
+                .populate({
+                    path: 'host',
+                    populate: { path: 'user', model: 'User' }
+                })
+                .sort({ startTime: -1 }); // Newest first
+
+            res.status(200).json(trips);
+        } catch (error) {
+            res.status(500).json({ message: 'Server error', error: error.message });
+        }
     }
 };
 
