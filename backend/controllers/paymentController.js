@@ -137,10 +137,24 @@ const paymentController = {
             );
 
             // Update RideRequest payment status
-            await RideRequest.findOneAndUpdate(
+            // Ensure we match trip and user correctly.
+            // Using findOneAndUpdate might not trigger hooks if any, but fine here.
+
+            const updatedRequest = await RideRequest.findOneAndUpdate(
               { trip: payment.trip, user: payment.user },
-              { paymentStatus: "paid" }
+              { paymentStatus: "paid" },
+              { new: true } // Return updated doc used for logging if needed
             );
+
+            if (updatedRequest) {
+              console.log(
+                `RideRequest ${updatedRequest._id} paymentStatus set to paid`
+              );
+            } else {
+              console.error(
+                `Could not find RideRequest to update for trip ${payment.trip} and user ${payment.user}`
+              );
+            }
           }
         } else {
           console.error(

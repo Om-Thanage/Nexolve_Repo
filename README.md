@@ -16,6 +16,8 @@
   <img src="https://img.shields.io/badge/Razorpay-Payments-092540?logo=razorpay&logoColor=white" alt="Razorpay">
 </p>
 
+<img src="client\public\system_design.png" alt="System Design">
+
 ## Features
 
 ### **Interactive Ride Booking**
@@ -36,7 +38,7 @@
 - Secure transaction processing
 - Payment history tracking
 
-###  **Advanced Authentication**
+### **Advanced Authentication**
 
 - Powered by Clerk for secure and easy sign-in/sign-up
 - Protected routes and persistent user sessions
