@@ -30,7 +30,7 @@ export default function RideStatusPanel({
   const [isReviewOpen, setIsReviewOpen] = useState(false);
 
   useEffect(() => {
-    if (request?.paymentStatus === "paid") {
+    if (request?.status === "completed") {
       setPaymentDone(true);
     }
   }, [request]);
@@ -135,7 +135,7 @@ export default function RideStatusPanel({
       console.error("Payment Error:", e);
       alert(
         e.response?.data?.message ||
-          "Error initiating payment. Please try again."
+        "Error initiating payment. Please try again."
       );
     } finally {
       setLoading(false);
@@ -225,9 +225,8 @@ export default function RideStatusPanel({
     <motion.div
       initial={{ y: "100%" }}
       animate={{ y: 0 }}
-      className={`absolute bottom-0 left-0 right-0 z-50 bg-background rounded-t-3xl shadow-[0_-10px_40px_-10px_rgba(0,0,0,0.2)] border-t border-border md:left-auto md:right-8 md:bottom-8 md:rounded-3xl flex flex-col overflow-hidden transition-all duration-300 ${
-        isChatOpen ? "h-[600px] md:w-96" : "md:w-96"
-      }`}
+      className={`absolute bottom-0 left-0 right-0 z-50 bg-background rounded-t-3xl shadow-[0_-10px_40px_-10px_rgba(0,0,0,0.2)] border-t border-border md:left-auto md:right-8 md:bottom-8 md:rounded-3xl flex flex-col overflow-hidden transition-all duration-300 ${isChatOpen ? "h-[600px] md:w-96" : "md:w-96"
+        }`}
     >
       {/* Chat Panel Overlay */}
       <ChatPanel
@@ -248,13 +247,13 @@ export default function RideStatusPanel({
           {(request.status === "accepted" ||
             request.status === "arrived" ||
             request.status === "ongoing") && (
-            <button
-              onClick={() => setIsChatOpen(true)}
-              className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm hover:bg-white/30 transition-colors relative"
-            >
-              <MessageSquare size={20} className="text-white" />
-            </button>
-          )}
+              <button
+                onClick={() => setIsChatOpen(true)}
+                className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm hover:bg-white/30 transition-colors relative"
+              >
+                <MessageSquare size={20} className="text-white" />
+              </button>
+            )}
           <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
             <NavIcon size={20} className="text-white" />
           </div>
