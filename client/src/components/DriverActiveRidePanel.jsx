@@ -10,7 +10,7 @@ export default function DriverActiveRidePanel({ trip, requests, onReset, onDrive
 
     // Helper to get OTP input for a specific request
     const getOtpArgs = (reqId) => otpInputs[reqId] || '';
-    
+
     // Helper to set OTP input
     const setOtpArgs = (reqId, val) => {
         setOtpInputs(prev => ({ ...prev, [reqId]: val }));
@@ -19,7 +19,7 @@ export default function DriverActiveRidePanel({ trip, requests, onReset, onDrive
     const handleVerifyOtp = async (request) => {
         const input = getOtpArgs(request._id);
         if (input.length !== 4) return alert("Enter 4 digits");
-        
+
         setLoading(true);
         try {
             await api.put(`/requests/${request._id}/status`, {
@@ -42,9 +42,9 @@ export default function DriverActiveRidePanel({ trip, requests, onReset, onDrive
         } catch (e) { console.error(e) }
         setLoading(false);
     };
-    
+
     const handleCancelUser = async (requestId) => {
-        if(!window.confirm("Are you sure you want to cancel this passenger?")) return;
+        if (!window.confirm("Are you sure you want to cancel this passenger?")) return;
         setLoading(true);
         try {
             await api.put(`/requests/${requestId}/status`, { status: "cancelled" });
@@ -53,7 +53,7 @@ export default function DriverActiveRidePanel({ trip, requests, onReset, onDrive
     };
 
     const handleEndRideForUser = async (requestId) => {
-        if(!window.confirm("End ride for this passenger?")) return;
+        if (!window.confirm("End ride for this passenger?")) return;
         setLoading(true);
         try {
             await api.put(`/requests/${requestId}/status`, { status: "completed" });
@@ -62,13 +62,13 @@ export default function DriverActiveRidePanel({ trip, requests, onReset, onDrive
     };
 
     const handleEndAllRides = async () => {
-         if(!window.confirm("End ride for ALL passengers?")) return;
-         setLoading(true);
-         try {
-             const active = requests.filter(r => r.status === 'ongoing');
-             await Promise.all(active.map(r => api.put(`/requests/${r._id}/status`, { status: "completed" })));
-         } catch(e) { console.error(e); }
-         setLoading(false);
+        if (!window.confirm("End ride for ALL passengers?")) return;
+        setLoading(true);
+        try {
+            const active = requests.filter(r => r.status === 'ongoing');
+            await Promise.all(active.map(r => api.put(`/requests/${r._id}/status`, { status: "completed" })));
+        } catch (e) { console.error(e); }
+        setLoading(false);
     }
 
     // Filter out completed/cancelled for the main list, OR keep them? 
@@ -81,16 +81,16 @@ export default function DriverActiveRidePanel({ trip, requests, onReset, onDrive
     // Calculate generic status for header
     const hasOngoing = activeRequests.some(r => r.status === 'ongoing');
     const allArrived = activeRequests.length > 0 && activeRequests.every(r => ['arrived', 'ongoing'].includes(r.status));
-    
+
     let title = "Picking up Passengers";
     let subtitle = "Head to pickup locations";
-    
+
     if (hasOngoing) {
         title = "Ride in Progress";
         subtitle = "Drive carefully to destinations";
     } else if (allArrived) {
-         title = "Waiting for OTPs";
-         subtitle = "Verify all passengers";
+        title = "Waiting for OTPs";
+        subtitle = "Verify all passengers";
     }
 
     return (
@@ -106,12 +106,12 @@ export default function DriverActiveRidePanel({ trip, requests, onReset, onDrive
                     <p className="text-primary-foreground/80 text-sm">{subtitle}</p>
                 </div>
                 <div className="flex gap-2">
-                    <button 
+                    <button
                         onClick={onDriverArrived}
                         className="p-2 bg-white/20 rounded-full hover:bg-white/30 transition-colors tooltip"
                         title="Teleport to Pickup"
                     >
-                         <NavIcon size={20} className="text-white" />
+                        <NavIcon size={20} className="text-white" />
                     </button>
                     <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
                         <Car size={20} className="text-white" />
@@ -120,7 +120,7 @@ export default function DriverActiveRidePanel({ trip, requests, onReset, onDrive
             </div>
 
             <div className="p-4 overflow-y-auto space-y-4">
-                
+
                 {/* Active Passengers List */}
                 <div className="space-y-3">
                     <div className="flex items-center justify-between">
@@ -128,9 +128,9 @@ export default function DriverActiveRidePanel({ trip, requests, onReset, onDrive
                             Passengers ({activeRequests.length})
                         </h4>
                         {hasOngoing && (
-                             <button onClick={handleEndAllRides} className="text-xs text-red-500 font-bold hover:underline">
-                                 End All
-                             </button>
+                            <button onClick={handleEndAllRides} className="text-xs text-red-500 font-bold hover:underline">
+                                End All
+                            </button>
                         )}
                     </div>
 
@@ -142,7 +142,7 @@ export default function DriverActiveRidePanel({ trip, requests, onReset, onDrive
 
                     <AnimatePresence>
                         {activeRequests.map(req => (
-                            <motion.div 
+                            <motion.div
                                 key={req._id}
                                 layout
                                 initial={{ opacity: 0, y: 10 }}
@@ -150,67 +150,71 @@ export default function DriverActiveRidePanel({ trip, requests, onReset, onDrive
                                 exit={{ opacity: 0, scale: 0.95 }}
                                 className="bg-card border border-border rounded-xl overflow-hidden shadow-sm"
                             >
-                                <div className="p-3 flex items-center justify-between gap-3">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center font-bold text-primary">
-                                            {req.user?.name?.[0] || <Users size={16}/>}
-                                        </div>
-                                        <div>
-                                            <div className="font-semibold text-sm">{req.user?.name || "Passenger"}</div>
-                                            <div className="text-xs text-muted-foreground capitalize status-badge">
-                                                {req.status}
+                                <div className="p-3">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center font-bold text-primary">
+                                                {req.user?.name?.[0] || <Users size={16} />}
+                                            </div>
+                                            <div>
+                                                <div className="font-semibold text-sm">{req.user?.name || "Passenger"}</div>
+                                                <div className="text-xs text-muted-foreground capitalize status-badge">
+                                                    {req.status}
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    
-                                    {/* Actions based on Status */}
-                                    <div className="flex items-center gap-2">
-                                        {req.status === 'accepted' && (
-                                            <>
-                                                <button 
-                                                    onClick={() => handleCancelUser(req._id)}
-                                                    className="p-2 text-muted-foreground hover:text-destructive transition-colors"
-                                                >
-                                                    <X size={18} />
-                                                </button>
-                                                <button 
-                                                    onClick={() => handleArrivedForUser(req._id)}
-                                                    className="px-3 py-1.5 bg-primary text-primary-foreground text-xs font-bold rounded-lg hover:bg-primary/90"
-                                                >
-                                                    Arrived
-                                                </button>
-                                            </>
-                                        )}
 
-                                        {req.status === 'arrived' && (
-                                            <div className="flex items-center gap-2">
-                                                 <input 
-                                                    type="text" 
-                                                    maxLength={4}
-                                                    placeholder="OTP"
-                                                    value={getOtpArgs(req._id)}
-                                                    onChange={(e) => setOtpArgs(req._id, e.target.value)}
-                                                    className="w-16 text-center text-sm border rounded-md py-1"
-                                                 />
-                                                 <button 
-                                                    onClick={() => handleVerifyOtp(req)}
-                                                    disabled={getOtpArgs(req._id).length < 4 || loading}
-                                                    className="p-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
-                                                 >
-                                                     <CheckCircle2 size={16} />
-                                                 </button>
-                                            </div>
-                                        )}
+                                        {/* Actions based on Status (Inline for non-arrived) */}
+                                        <div className="flex items-center gap-2">
+                                            {req.status === 'accepted' && (
+                                                <>
+                                                    <button
+                                                        onClick={() => handleCancelUser(req._id)}
+                                                        className="p-2 text-muted-foreground hover:text-destructive transition-colors"
+                                                    >
+                                                        <X size={18} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleArrivedForUser(req._id)}
+                                                        className="px-3 py-1.5 bg-primary text-primary-foreground text-xs font-bold rounded-lg hover:bg-primary/90"
+                                                    >
+                                                        Arrived
+                                                    </button>
+                                                </>
+                                            )}
 
-                                        {req.status === 'ongoing' && (
-                                             <button 
-                                                onClick={() => handleEndRideForUser(req._id)}
-                                                className="px-3 py-1.5 bg-secondary text-secondary-foreground text-xs font-bold rounded-lg hover:bg-secondary/80 border border-border"
-                                             >
-                                                 Drop
-                                             </button>
-                                        )}
+                                            {req.status === 'ongoing' && (
+                                                <button
+                                                    onClick={() => handleEndRideForUser(req._id)}
+                                                    className="px-3 py-1.5 bg-secondary text-secondary-foreground text-xs font-bold rounded-lg hover:bg-secondary/80 border border-border"
+                                                >
+                                                    Drop
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
+
+                                    {/* Expanded OTP Section for Arrived Status */}
+                                    {req.status === 'arrived' && (
+                                        <div className="mt-3 space-y-3 p-2 bg-secondary/10 rounded-lg">
+                                            <p className="text-center text-sm text-muted-foreground">Ask rider for OTP</p>
+                                            <input
+                                                type="text"
+                                                maxLength={4}
+                                                value={getOtpArgs(req._id)}
+                                                onChange={(e) => setOtpArgs(req._id, e.target.value)}
+                                                className="w-full text-center text-3xl font-mono tracking-widest border border-border rounded-xl py-3 bg-secondary/20 focus:ring-2 focus:ring-primary outline-none"
+                                                placeholder="0000"
+                                            />
+                                            <button
+                                                onClick={() => handleVerifyOtp(req)}
+                                                disabled={getOtpArgs(req._id).length < 4 || loading}
+                                                className="w-full py-2 bg-green-600 text-white font-bold rounded-xl shadow-sm hover:bg-green-700 disabled:opacity-50 flex items-center justify-center gap-2"
+                                            >
+                                                {loading ? 'Verifying...' : <> <CheckCircle2 size={18} /> Verify OTP </>}
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
                             </motion.div>
                         ))}
@@ -233,12 +237,12 @@ export default function DriverActiveRidePanel({ trip, requests, onReset, onDrive
                         </div>
                     </div>
                 )}
-                
+
                 {/* Close/Reset Button when all done */}
                 {activeRequests.length === 0 && completedRequests.length > 0 && (
-                     <button onClick={onReset} className="w-full py-3 bg-primary text-primary-foreground font-bold rounded-xl shadow-lg mt-4">
+                    <button onClick={onReset} className="w-full py-3 bg-primary text-primary-foreground font-bold rounded-xl shadow-lg mt-4">
                         Close & Finish Trip
-                     </button>
+                    </button>
                 )}
 
             </div>

@@ -118,7 +118,10 @@ export default function RideStatusPanel({ ride, request, isDriver, onReset, onDr
     let title = "";
     let subtitle = "";
 
-    if (request.status === 'accepted') {
+    if (request.status === 'requested') {
+        title = "Request Sent";
+        subtitle = "Waiting for driver to accept...";
+    } else if (request.status === 'accepted') {
         title = isDriver ? "Pick up Rider" : "Driver is arriving";
         subtitle = isDriver ? "Head to pickup location" : "Share OTP with driver";
     } else if (request.status === 'arrived') {
@@ -150,6 +153,25 @@ export default function RideStatusPanel({ ride, request, isDriver, onReset, onDr
             </div>
 
             <div className="p-5 space-y-6">
+
+                {/* STATUS: REQUESTED (PENDING) */}
+                {request.status === 'requested' && (
+                    <div className="space-y-4">
+                        <div className="bg-secondary/30 p-4 rounded-xl text-center space-y-2">
+                            <p className="text-sm text-muted-foreground">Waiting for driver to accept the ride</p>
+                            <div className="animate-pulse text-2xl font-bold text-primary">
+                                ⏳
+                            </div>
+                        </div>
+                        <button
+                            onClick={handleCancelRide}
+                            disabled={loading}
+                            className="w-full py-3 bg-red-100 text-red-700 font-bold rounded-xl hover:bg-red-200 disabled:opacity-50"
+                        >
+                            {loading ? 'Cancelling...' : 'Cancel Request'}
+                        </button>
+                    </div>
+                )}
 
                 {/* STATUS: ACCEPTED */}
                 {request.status === 'accepted' && (
