@@ -214,6 +214,9 @@ export default function RideStatusPanel({
     subtitle = isDriver ? "Navigate to destination" : "Enjoy your ride";
   } else if (request.status === "completed") {
     title = "Ride Completed";
+    subtitle = "Ride finished successfully";
+  } else if (request.status === "payment-pending") {
+    title = "Ride Finished";
     subtitle = "Payment due";
   }
 
@@ -400,8 +403,8 @@ export default function RideStatusPanel({
           </div>
         )}
 
-        {/* STATUS: COMPLETED / PAYMENT */}
-        {request.status === "completed" && (
+        {/* STATUS: COMPLETED / PAYMENT / PAYMENT-PENDING */}
+        {(request.status === "completed" || request.status === "payment-pending") && (
           <div className="space-y-4 text-center">
             <div className="py-4">
               <h2 className="text-3xl font-bold">₹{ride?.farePerSeat || 0}</h2>

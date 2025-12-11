@@ -100,7 +100,14 @@ const paymentController = {
             payment.status = "completed";
             payment.razorpayPaymentId = paymentId;
             await payment.save();
+
             console.log(`Payment ${payment._id} marked as completed`);
+
+            // Also update RideRequest
+            await RideRequest.findOneAndUpdate(
+              { trip: payment.trip, user: payment.user },
+              { paymentStatus: "paid", status: "completed" }
+            );
           }
         }
         res.json({ status: "ok" });
@@ -142,7 +149,7 @@ const paymentController = {
 
             const updatedRequest = await RideRequest.findOneAndUpdate(
               { trip: payment.trip, user: payment.user },
-              { paymentStatus: "paid" },
+              { paymentStatus: "paid", status: "completed" },
               { new: true } // Return updated doc used for logging if needed
             );
 
