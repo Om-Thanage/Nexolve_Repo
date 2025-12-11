@@ -67,27 +67,20 @@ export default function RideStatusPanel({
     }
     setLoading(false);
   };
-    const handleArrived = async () => {
-        setLoading(true);
-        try {
-            await api.put(`/requests/${request._id}/status`, { status: "arrived" });
-        } catch (e) { console.error(e) }
-        setLoading(false);
-    };
 
-    const handleCancelRide = async () => {
-        if (!window.confirm("Are you sure you want to cancel the ride?")) return;
-        setLoading(true);
-        try {
-            await api.put(`/requests/${request._id}/status`, { status: "cancelled" });
-            // The Home component polling will pick this up and clear the view, or we can call onReset
-            onReset();
-        } catch (e) {
-            console.error(e);
-            alert("Failed to cancel ride");
-        }
-        setLoading(false);
-    };
+  const handleCancelRide = async () => {
+    if (!window.confirm("Are you sure you want to cancel the ride?")) return;
+    setLoading(true);
+    try {
+      await api.put(`/requests/${request._id}/status`, { status: "cancelled" });
+      // The Home component polling will pick this up and clear the view, or we can call onReset
+      onReset();
+    } catch (e) {
+      console.error(e);
+      alert("Failed to cancel ride");
+    }
+    setLoading(false);
+  };
 
   const handlePayment = async () => {
     setLoading(true);
@@ -224,49 +217,17 @@ export default function RideStatusPanel({
                 <div className="text-2xl font-bold text-primary">
                   {ride.vehicle?.model} • {ride.vehicle?.plateNumber || "...."}
                 </div>
+                <button
+                  onClick={handleCancelRide}
+                  disabled={loading}
+                  className="w-full py-2 text-destructive font-medium hover:bg-destructive/10 rounded-lg transition-colors"
+                >
+                  Cancel Ride
+                </button>
               </div>
             )}
           </div>
         )}
-            <div className="p-5 space-y-6">
-
-                {/* STATUS: ACCEPTED */}
-                {request.status === 'accepted' && (
-                    <div className="space-y-4">
-                        {isDriver ? (
-                            <>
-                                <button
-                                    onClick={handleArrived}
-                                    disabled={loading}
-                                    className="w-full py-3 bg-foreground text-background font-bold rounded-xl shadow-lg hover:opacity-90 disabled:opacity-50"
-                                >
-                                    {loading ? 'Updating...' : 'I have Arrived'}
-                                </button>
-                                <button
-                                    onClick={onDriverArrived}
-                                    className="w-full py-3 bg-blue-100 text-blue-700 font-bold rounded-xl hover:bg-blue-200"
-                                >
-                                    ⚡ Teleport to Pickup
-                                </button>
-                            </>
-                        ) : (
-                            // Rider View (Waiting)
-                            <div className="bg-secondary/30 p-4 rounded-xl text-center space-y-2">
-                                <p className="text-sm text-muted-foreground">Driver is on the way</p>
-                                <div className="text-2xl font-bold text-primary">
-                                    {ride.vehicle?.model} • {ride.vehicle?.plateNumber || '....'}
-                                </div>
-                                <button
-                                    onClick={handleCancelRide}
-                                    disabled={loading}
-                                    className="w-full py-2 text-destructive font-medium hover:bg-destructive/10 rounded-lg transition-colors"
-                                >
-                                    Cancel Ride
-                                </button>
-                            </div>
-                        )}
-                    </div>
-                )}
 
         {/* STATUS: ARRIVED */}
         {request.status === "arrived" && (
@@ -307,56 +268,17 @@ export default function RideStatusPanel({
                   <Shield size={16} className="mt-0.5" />
                   <p>Driver is here! Give this code to start ride.</p>
                 </div>
+                <button
+                  onClick={handleCancelRide}
+                  disabled={loading}
+                  className="w-full py-2 text-destructive font-medium hover:bg-destructive/10 rounded-lg transition-colors text-sm"
+                >
+                  Cancel Ride
+                </button>
               </>
             )}
           </div>
         )}
-                {/* STATUS: ARRIVED */}
-                {request.status === 'arrived' && (
-                    <div className="space-y-4">
-                        {isDriver ? (
-                            <>
-                                <p className="text-center text-sm text-muted-foreground">Ask rider for OTP</p>
-                                <input
-                                    type="text"
-                                    maxLength={4}
-                                    value={otpInput}
-                                    onChange={(e) => setOtpInput(e.target.value)}
-                                    className="w-full text-center text-4xl font-mono tracking-widest border border-border rounded-xl py-4 bg-secondary/20 focus:ring-2 focus:ring-primary outline-none"
-                                    placeholder="0000"
-                                />
-                                <button
-                                    onClick={handleVerifyOtp}
-                                    disabled={loading || otpInput.length < 4}
-                                    className="w-full py-3 bg-green-600 text-white font-bold rounded-xl shadow-lg hover:bg-green-700 disabled:opacity-50"
-                                >
-                                    {loading ? 'Verifying...' : 'Verify OTP'}
-                                </button>
-                            </>
-                        ) : (
-                            // Rider View (Arrived - Show OTP)
-                            <>
-                                <div className="bg-secondary/30 p-4 rounded-xl text-center space-y-2">
-                                    <p className="text-sm text-muted-foreground">Share this OTP with {ride.host?.user?.name || 'Driver'}</p>
-                                    <div className="text-4xl font-mono font-bold tracking-[0.5em] text-primary text-center pl-2">
-                                        {request.otp || '....'}
-                                    </div>
-                                </div>
-                                <div className="bg-blue-50 text-blue-700 p-3 rounded-lg text-sm flex items-start gap-2">
-                                    <Shield size={16} className="mt-0.5" />
-                                    <p>Driver is here! Give this code to start ride.</p>
-                                </div>
-                                <button
-                                    onClick={handleCancelRide}
-                                    disabled={loading}
-                                    className="w-full py-2 text-destructive font-medium hover:bg-destructive/10 rounded-lg transition-colors text-sm"
-                                >
-                                    Cancel Ride
-                                </button>
-                            </>
-                        )}
-                    </div>
-                )}
 
         {/* STATUS: ONGOING */}
         {request.status === "ongoing" && (
