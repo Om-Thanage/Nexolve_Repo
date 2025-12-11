@@ -21,6 +21,20 @@ const paymentController = {
           const user = await User.findById(uid);
           if (!user) throw new Error(`User ${uid} not found`);
 
+          // Helper to format phone for Razorpay (E.164 or at least ensuring valid chars)
+          let contact = user.phone;
+          // Clean phone: remove non-digit characters
+          const cleaned = (contact || "9876543210").replace(/\D/g, "");
+          // Ensure it has 10 digits (India context usually, but good fallback)
+          // If < 10, use dummy. If > 10, likely has country code.
+          if (cleaned.length < 10) {
+            contact = "9876543210";
+          } else {
+            contact = cleaned.slice(-10); // Take last 10 digits
+          }
+          // Prepend +91 if likely Indian and missing country code, Razorpay handles formatting but +91 is safe
+          contact = `+91${contact}`;
+
           // Create Razorpay Payment Link
           const paymentLink = await razorpay.paymentLink.create({
             amount: Math.round(splitAmount * 100), // Amount in paise
@@ -30,7 +44,7 @@ const paymentController = {
             customer: {
               name: user.name,
               email: user.email,
-              contact: user.phone || "+919876543210", // Fallback if no phone
+              contact: contact,
             },
             notify: {
               sms: false,

@@ -16,6 +16,7 @@ const rideRequestRoutes = require("./routes/rideRequestRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const vehicleRoutes = require("./routes/vehicleRoutes");
+const reviewRoutes = require("./routes/reviewRoutes");
 const messageRoutes = require("./routes/messageRoutes");
 
 app.use(cors());
@@ -33,6 +34,7 @@ app.use("/api/requests", rideRequestRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/vehicles", vehicleRoutes);
+app.use("/api/reviews", reviewRoutes);
 app.use("/api/messages", messageRoutes);
 
 app.get("/", (req, res) => {

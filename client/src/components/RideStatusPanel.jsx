@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import api from "../api";
 import ChatPanel from "./ChatPanel";
+import ReviewDialog from "./ReviewDialog";
 
 export default function RideStatusPanel({
   ride,
@@ -26,12 +27,31 @@ export default function RideStatusPanel({
   const [driverArrived, setDriverArrived] = useState(false);
   const [driverOtp, setDriverOtp] = useState("");
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isReviewOpen, setIsReviewOpen] = useState(false);
 
   useEffect(() => {
     if (request?.paymentStatus === "paid") {
       setPaymentDone(true);
     }
   }, [request]);
+
+  const handlePaymentSuccessClose = async () => {
+    // Archive the request
+    try {
+      await api.put(`/requests/${request._id}/archive`);
+    } catch (e) {
+      console.error("Failed to archive request", e);
+    }
+
+    setPaymentDone(false); // Close payment success view
+
+    // Open Review Dialog if rider
+    if (!isDriver) {
+      setIsReviewOpen(true);
+    } else {
+      onReset(); // Driver just resets
+    }
+  };
 
   const handleVerifyOtp = async () => {
     if (otpInput.length !== 4) return alert("Enter 4 digits");
@@ -113,7 +133,10 @@ export default function RideStatusPanel({
       }
     } catch (e) {
       console.error("Payment Error:", e);
-      alert("Error initiating payment. Please try again.");
+      alert(
+        e.response?.data?.message ||
+          "Error initiating payment. Please try again."
+      );
     } finally {
       setLoading(false);
     }
@@ -138,20 +161,38 @@ export default function RideStatusPanel({
             : "Your payment was successful."}
         </p>
         <button
-          onClick={async () => {
-            // Archive the request so it doesn't show up again
-            try {
-              await api.put(`/requests/${request._id}/archive`);
-            } catch (e) {
-              console.error("Failed to archive request", e);
-            }
-            onReset();
-          }}
+          onClick={handlePaymentSuccessClose}
           className="w-full py-3 bg-secondary font-bold rounded-xl hover:bg-secondary/80"
         >
-          Close
+          {isDriver ? "Close" : "Continue"}
         </button>
       </motion.div>
+    );
+  }
+
+  // Render Review Dialog independently if open (even after payment screen closes logic,
+  // but wait.. if payment screen returns early, we need to handle that.
+  // Actually, we are calling handlePaymentSuccessClose.
+  // We should render ReviewDialog OUTSIDE the paymentDone check or allow paymentDone to stay true?
+  // Better approach: use portals or render ReviewDialog at the top level and ensure 'paymentDone'
+  // doesn't block it if we want the "Close" button to dismiss the payment confirmation.
+  //
+  // Let's modify: When handlePaymentSuccessClose is called, we can setPaymentDone(false) to unmount that view,
+  // and simultaneously setIsReviewOpen(true).
+
+  if (isReviewOpen) {
+    return (
+      <ReviewDialog
+        isOpen={isReviewOpen}
+        onClose={() => {
+          setIsReviewOpen(false);
+          onReset();
+        }}
+        tripId={ride._id}
+        reviewerId={request.user?._id}
+        revieweeId={ride.host?.user?._id}
+        revieweeName={ride.host?.user?.name || "Driver"}
+      />
     );
   }
 
