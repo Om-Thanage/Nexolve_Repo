@@ -46,6 +46,20 @@ export default function RideStatusPanel({ ride, request, isDriver, onReset, onDr
         setLoading(false);
     };
 
+    const handleCancelRide = async () => {
+        if (!window.confirm("Are you sure you want to cancel the ride?")) return;
+        setLoading(true);
+        try {
+            await api.put(`/requests/${request._id}/status`, { status: "cancelled" });
+            // The Home component polling will pick this up and clear the view, or we can call onReset
+            onReset();
+        } catch (e) {
+            console.error(e);
+            alert("Failed to cancel ride");
+        }
+        setLoading(false);
+    };
+
     const handlePayment = async () => {
         setLoading(true);
         try {
@@ -163,6 +177,13 @@ export default function RideStatusPanel({ ride, request, isDriver, onReset, onDr
                                 <div className="text-2xl font-bold text-primary">
                                     {ride.vehicle?.model} • {ride.vehicle?.plateNumber || '....'}
                                 </div>
+                                <button
+                                    onClick={handleCancelRide}
+                                    disabled={loading}
+                                    className="w-full py-2 text-destructive font-medium hover:bg-destructive/10 rounded-lg transition-colors"
+                                >
+                                    Cancel Ride
+                                </button>
                             </div>
                         )}
                     </div>
@@ -203,6 +224,13 @@ export default function RideStatusPanel({ ride, request, isDriver, onReset, onDr
                                     <Shield size={16} className="mt-0.5" />
                                     <p>Driver is here! Give this code to start ride.</p>
                                 </div>
+                                <button
+                                    onClick={handleCancelRide}
+                                    disabled={loading}
+                                    className="w-full py-2 text-destructive font-medium hover:bg-destructive/10 rounded-lg transition-colors text-sm"
+                                >
+                                    Cancel Ride
+                                </button>
                             </>
                         )}
                     </div>
