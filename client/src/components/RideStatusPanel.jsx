@@ -184,7 +184,9 @@ export default function RideStatusPanel({
     <motion.div
       initial={{ y: "100%" }}
       animate={{ y: 0 }}
-      className="absolute bottom-0 left-0 right-0 z-50 bg-background rounded-t-3xl shadow-[0_-10px_40px_-10px_rgba(0,0,0,0.2)] border-t border-border md:w-96 md:left-auto md:right-8 md:bottom-8 md:rounded-3xl flex flex-col overflow-hidden"
+      className={`absolute bottom-0 left-0 right-0 z-50 bg-background rounded-t-3xl shadow-[0_-10px_40px_-10px_rgba(0,0,0,0.2)] border-t border-border md:left-auto md:right-8 md:bottom-8 md:rounded-3xl flex flex-col overflow-hidden transition-all duration-300 ${
+        isChatOpen ? "h-[600px] md:w-96" : "md:w-96"
+      }`}
     >
       {/* Chat Panel Overlay */}
       <ChatPanel

@@ -130,7 +130,9 @@ export default function DriverActiveRidePanel({
     <motion.div
       initial={{ y: "100%" }}
       animate={{ y: 0 }}
-      className="absolute bottom-0 left-0 right-0 z-50 bg-background rounded-t-3xl shadow-[0_-10px_40px_-10px_rgba(0,0,0,0.2)] border-t border-border md:w-[28rem] md:left-auto md:right-8 md:bottom-8 md:rounded-3xl flex flex-col overflow-hidden max-h-[80vh]"
+      className={`absolute bottom-0 left-0 right-0 z-50 bg-background rounded-t-3xl shadow-[0_-10px_40px_-10px_rgba(0,0,0,0.2)] border-t border-border md:left-auto md:right-8 md:bottom-8 md:rounded-3xl flex flex-col overflow-hidden max-h-[80vh] transition-all duration-300 ${
+        activeChatUser ? "h-[600px] md:w-[28rem]" : "md:w-[28rem]"
+      }`}
     >
       {/* Header */}
       <div className="bg-primary text-primary-foreground p-4 flex items-center justify-between shrink-0">

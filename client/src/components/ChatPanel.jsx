@@ -92,7 +92,7 @@ export default function ChatPanel({
           initial={{ y: "100%" }}
           animate={{ y: 0 }}
           exit={{ y: "100%" }}
-          className="absolute inset-0 z-[60] bg-background flex flex-col md:rounded-3xl overflow-hidden"
+          className="absolute inset-0 z-60 bg-background flex flex-col md:rounded-3xl overflow-hidden"
         >
           {/* Header */}
           <div className="p-4 bg-primary text-primary-foreground flex items-center justify-between shadow-md">
