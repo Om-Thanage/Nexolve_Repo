@@ -1,17 +1,35 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Phone, MessageSquare, Shield, CheckCircle2, Navigation as NavIcon, Car } from 'lucide-react';
-import api from '../api';
+import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import {
+    Phone,
+    MessageSquare,
+    Shield,
+    CheckCircle2,
+    Navigation as NavIcon,
+    Car,
+} from "lucide-react";
+import api from "../api";
 
-export default function RideStatusPanel({ ride, request, isDriver, onReset, onDriverArrived }) {
+export default function RideStatusPanel({
+    ride,
+    request,
+    isDriver,
+    onReset,
+    onDriverArrived,
+}) {
     // Shared Status Panel for Rider & Driver
-    const [otpInput, setOtpInput] = useState('');
+    const [otpInput, setOtpInput] = useState("");
     const [loading, setLoading] = useState(false);
     const [paymentDone, setPaymentDone] = useState(false);
     const [driverLocation, setDriverLocation] = useState(null);
     const [driverArrived, setDriverArrived] = useState(false);
-    const [driverOtp, setDriverOtp] = useState('');
+    const [driverOtp, setDriverOtp] = useState("");
 
+    useEffect(() => {
+        if (request?.paymentStatus === "paid") {
+            setPaymentDone(true);
+        }
+    }, [request]);
 
     const handleVerifyOtp = async () => {
         if (otpInput.length !== 4) return alert("Enter 4 digits");
@@ -20,8 +38,8 @@ export default function RideStatusPanel({ ride, request, isDriver, onReset, onDr
             // Verify via update status
             // Assuming 'api' is globally available or imported elsewhere
             await api.put(`/requests/${request._id}/status`, {
-                status: 'ongoing',
-                otp: otpInput
+                status: "ongoing",
+                otp: otpInput,
             });
             // Status update will be reflected via props/poll
         } catch (e) {
@@ -35,14 +53,18 @@ export default function RideStatusPanel({ ride, request, isDriver, onReset, onDr
         try {
             // Assuming 'api' is globally available or imported elsewhere
             await api.put(`/requests/${request._id}/status`, { status: "completed" });
-        } catch (e) { console.error(e) }
+        } catch (e) {
+            console.error(e);
+        }
     };
 
     const handleArrived = async () => {
         setLoading(true);
         try {
             await api.put(`/requests/${request._id}/status`, { status: "arrived" });
-        } catch (e) { console.error(e) }
+        } catch (e) {
+            console.error(e);
+        }
         setLoading(false);
     };
 
@@ -70,10 +92,10 @@ export default function RideStatusPanel({ ride, request, isDriver, onReset, onDr
             }
 
             // Note: tripId is typically available in the 'ride' object
-            const res = await api.post('/payments/split', {
+            const res = await api.post("/payments/split", {
                 tripId: ride._id,
                 userIds: [userId],
-                totalAmount: ride.farePerSeat
+                totalAmount: ride.farePerSeat,
             });
 
             if (res.data.payments && res.data.payments.length > 0) {
@@ -105,13 +127,30 @@ export default function RideStatusPanel({ ride, request, isDriver, onReset, onDr
                 <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
                     <CheckCircle2 size={32} />
                 </div>
-                <h3 className="text-xl font-bold mb-2">Thank you for riding!</h3>
-                <p className="text-muted-foreground mb-6">Your payment was successful.</p>
-                <button onClick={onReset} className="w-full py-3 bg-secondary font-bold rounded-xl hover:bg-secondary/80">
+                <h3 className="text-xl font-bold mb-2">
+                    {isDriver ? "Trip Completed!" : "Thank you for riding!"}
+                </h3>
+                <p className="text-muted-foreground mb-6">
+                    {isDriver
+                        ? "Payment has been received."
+                        : "Your payment was successful."}
+                </p>
+                <button
+                    onClick={async () => {
+                        // Archive the request so it doesn't show up again
+                        try {
+                            await api.put(`/requests/${request._id}/archive`);
+                        } catch (e) {
+                            console.error("Failed to archive request", e);
+                        }
+                        onReset();
+                    }}
+                    className="w-full py-3 bg-secondary font-bold rounded-xl hover:bg-secondary/80"
+                >
                     Close
                 </button>
             </motion.div>
-        )
+        );
     }
 
     // Dynamic Headers based on Role
@@ -212,11 +251,13 @@ export default function RideStatusPanel({ ride, request, isDriver, onReset, onDr
                 )}
 
                 {/* STATUS: ARRIVED */}
-                {request.status === 'arrived' && (
+                {request.status === "arrived" && (
                     <div className="space-y-4">
                         {isDriver ? (
                             <>
-                                <p className="text-center text-sm text-muted-foreground">Ask rider for OTP</p>
+                                <p className="text-center text-sm text-muted-foreground">
+                                    Ask rider for OTP
+                                </p>
                                 <input
                                     type="text"
                                     maxLength={4}
@@ -230,16 +271,18 @@ export default function RideStatusPanel({ ride, request, isDriver, onReset, onDr
                                     disabled={loading || otpInput.length < 4}
                                     className="w-full py-3 bg-green-600 text-white font-bold rounded-xl shadow-lg hover:bg-green-700 disabled:opacity-50"
                                 >
-                                    {loading ? 'Verifying...' : 'Verify OTP'}
+                                    {loading ? "Verifying..." : "Verify OTP"}
                                 </button>
                             </>
                         ) : (
                             // Rider View (Arrived - Show OTP)
                             <>
                                 <div className="bg-secondary/30 p-4 rounded-xl text-center space-y-2">
-                                    <p className="text-sm text-muted-foreground">Share this OTP with {ride.host?.user?.name || 'Driver'}</p>
+                                    <p className="text-sm text-muted-foreground">
+                                        Share this OTP with {ride.host?.user?.name || "Driver"}
+                                    </p>
                                     <div className="text-4xl font-mono font-bold tracking-[0.5em] text-primary text-center pl-2">
-                                        {request.otp || '....'}
+                                        {request.otp || "...."}
                                     </div>
                                 </div>
                                 <div className="bg-blue-50 text-blue-700 p-3 rounded-lg text-sm flex items-start gap-2">
@@ -259,7 +302,7 @@ export default function RideStatusPanel({ ride, request, isDriver, onReset, onDr
                 )}
 
                 {/* STATUS: ONGOING */}
-                {request.status === 'ongoing' && (
+                {request.status === "ongoing" && (
                     <div className="space-y-4">
                         <div className="flex items-center gap-4 py-2">
                             <div className="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center">
@@ -267,11 +310,18 @@ export default function RideStatusPanel({ ride, request, isDriver, onReset, onDr
                             </div>
                             <div>
                                 <h4 className="font-bold text-sm">On the way</h4>
-                                <p className="text-xs text-muted-foreground">{isDriver ? "Drive carefully" : "You are in " + (ride.vehicle?.model || 'car')}</p>
+                                <p className="text-xs text-muted-foreground">
+                                    {isDriver
+                                        ? "Drive carefully"
+                                        : "You are in " + (ride.vehicle?.model || "car")}
+                                </p>
                             </div>
                         </div>
                         {isDriver && (
-                            <button onClick={handleEndRide} className="w-full py-4 bg-red-600 text-white font-bold rounded-xl shadow-lg hover:bg-red-700">
+                            <button
+                                onClick={handleEndRide}
+                                className="w-full py-4 bg-red-600 text-white font-bold rounded-xl shadow-lg hover:bg-red-700"
+                            >
                                 End Ride
                             </button>
                         )}
@@ -279,7 +329,7 @@ export default function RideStatusPanel({ ride, request, isDriver, onReset, onDr
                 )}
 
                 {/* STATUS: COMPLETED / PAYMENT */}
-                {request.status === 'completed' && (
+                {request.status === "completed" && (
                     <div className="space-y-4 text-center">
                         <div className="py-4">
                             <h2 className="text-3xl font-bold">₹{ride?.farePerSeat || 0}</h2>
@@ -291,16 +341,17 @@ export default function RideStatusPanel({ ride, request, isDriver, onReset, onDr
                                 disabled={loading}
                                 className="w-full py-4 bg-foreground text-background font-bold rounded-xl hover:opacity-90 shadow-lg disabled:opacity-50"
                             >
-                                {loading ? 'Processing...' : 'Pay Now'}
+                                {loading ? "Processing..." : "Pay Now"}
                             </button>
                         )}
                         {isDriver && (
-                            <div className="bg-green-100 text-green-800 p-3 rounded">Payment Pending from User</div>
+                            <div className="bg-green-100 text-green-800 p-3 rounded">
+                                Payment Pending from User
+                            </div>
                         )}
                     </div>
                 )}
-
             </div>
-        </motion.div >
+        </motion.div>
     );
 }
