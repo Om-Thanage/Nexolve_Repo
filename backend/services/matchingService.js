@@ -16,30 +16,10 @@ const matchingService = {
         let timeScore = 0;
 
         try {
-            // Check for API Key implies we should try Google Maps
-            // However, the RoutesClient usually needs authentication (ADC or API Key config).
-            // Assuming standard env var GOOGLE_APPLICATION_CREDENTIALS or gRPC interaction.
-            // If the user only has an API Key, this client might require specific instantiation options 
-            // or setting the `X-Goog-Api-Key` header via metadata/call options if the library supports it.
-            // For now, we'll assume the environment is set up for it, or wrap in try-catch.
-
-            // To be safe with "just an API key" in standard Node environments, we often need to pass it explicitly 
-            // or use the REST wrapper. But since we must use @googlemaps/routing, we try it.
-
-            // NOTE: This is a simplified usage. Real implementation of Matrix API requires constructing the request carefully.
-            // Since we can't easily guarantee credentials without a Service Account JSON for gRPC, 
-            // and the user likely has an API KEY, we might face issue. 
-            // We'll structure this to attempt it, but catch widely.
 
             if (!process.env.GOOGLE_MAPS_API_KEY) {
                 throw new Error("No API Key");
             }
-
-            // If we were to use the client:
-            // const client = new RoutesClient();
-            // But we'll fallback to geolib for this "mock" step unless we are essentially sure.
-            // Given the complexity of gRPC setup in this environment without interactive auth, 
-            // I will implement the logic structure but force a fallback if it fails.
 
             // 1. Proximity via Geolib (Baseline)
             const tripStart = { latitude: trip.startLocation.coordinates[1], longitude: trip.startLocation.coordinates[0] };
@@ -49,13 +29,6 @@ const matchingService = {
 
             const rawDistStart = geolib.getDistance(tripStart, reqStart);
             const rawDistEnd = geolib.getDistance(tripEnd, reqEnd);
-
-            // "Real" matrix call implementation would go here:
-            // const request = { origins: [...], destinations: [...], ... };
-            // const [response] = await client.computeRouteMatrix(request);
-
-            // Mocking the "Accuracy" improvement or Carbon Savings if we had real distance
-            // For now, we stick to the geolib + math logic but structured as async to allow future swap
 
             distanceScore = Math.max(0, 100 - (rawDistStart + rawDistEnd) / 100);
 

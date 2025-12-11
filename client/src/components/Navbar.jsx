@@ -17,18 +17,6 @@ export default function Navbar() {
           <ul className="hidden md:flex items-center gap-6 text-sm font-medium mr-4">
             <li>
               <NavLink
-                to="/search"
-                className={({ isActive }) =>
-                  isActive
-                    ? "text-foreground font-semibold"
-                    : "text-muted-foreground hover:text-foreground transition-colors"
-                }
-              >
-                Search
-              </NavLink>
-            </li>
-            <li>
-              <NavLink
                 to="/create-trip"
                 className={({ isActive }) =>
                   isActive

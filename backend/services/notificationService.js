@@ -21,6 +21,12 @@ const notificationService = {
         const subject = "Ride Request Accepted!";
         const text = `Good news! ${driverName} has accepted your request.`;
         await notificationService.sendEmail(riderEmail, subject, text);
+    },
+
+    notifyRequestRejected: async (riderEmail, driverName) => {
+        const subject = "Ride Request Update";
+        const text = `Start looking for another ride. ${driverName} has declined your request.`;
+        await notificationService.sendEmail(riderEmail, subject, text);
     }
 };
 

@@ -86,6 +86,17 @@ const rideRequestController = {
         );
       }
 
+      if (status === "rejected") {
+        const trip = await Trip.findById(request.trip._id).populate("host");
+        const driverUser = await User.findById(trip.host.user);
+
+        // Notify Rider
+        await notificationService.notifyRequestRejected(
+          request.user.email,
+          driverUser ? driverUser.name : "Driver"
+        );
+      }
+
       if (status === "ongoing") {
         // Verify OTP
         const { otp } = req.body;

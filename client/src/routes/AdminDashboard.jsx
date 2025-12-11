@@ -70,7 +70,7 @@ export default function AdminDashboard() {
 
     const kpiData = [
         { label: 'Total Revenue', value: `₹${stats.totalRevenue.toLocaleString()} `, change: '+20%', color: 'border-l-4 border-l-yellow-500' },
-        { label: 'Active Drivers', value: stats.activeDrivers.toLocaleString(), change: '+5%', color: 'border-l-4 border-l-green-500' },
+        // { label: 'Active Drivers', value: stats.activeDrivers.toLocaleString(), change: '+5%', color: 'border-l-4 border-l-green-500' },
         { label: 'Total Trips', value: stats.totalTrips.toLocaleString(), change: '+23%', color: 'border-l-4 border-l-purple-500' },
         { label: 'Carbon Saved (kg)', value: stats.totalCarbonSaved.toLocaleString(), change: '+18%', color: 'border-l-4 border-l-teal-500' },
     ];
@@ -98,7 +98,7 @@ export default function AdminDashboard() {
                         </header>
 
                         {/* KPI Cards */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                             {kpiData.map((kpi, index) => (
                                 <div key={index} className={`bg-card p-6 rounded-xl border border-border shadow-sm ${kpi.color}`}>
                                     <p className="text-sm font-medium text-muted-foreground">{kpi.label}</p>
@@ -116,7 +116,7 @@ export default function AdminDashboard() {
                                 <div className="flex items-end justify-between h-48 gap-2 mt-4 px-4">
                                     {chartData.map((bar, i) => (
                                         <div key={i} className="flex flex-col items-center flex-1 group">
-                                            <div className={`w-full ${bar.height || 'h-0'} bg-primary rounded-t-sm opacity-80 group-hover:opacity-100 transition-opacity relative`}>
+                                            <div className={`w-full bg-primary rounded-t-sm opacity-80 group-hover:opacity-100 transition-opacity relative`} style={{ height: `${bar.value * 10}px` }}>
                                                 <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-popover text-popover-foreground text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity">
                                                     {bar.value}
                                                 </div>
@@ -137,16 +137,15 @@ export default function AdminDashboard() {
                                                 {activity.user ? activity.user.charAt(0) : '?'}
                                             </div>
                                             <div className="flex-1">
-                                                <p className="text-sm font-medium leading-none">{activity.user}</p>
+                                                <p className="text-sm font-medium leading-none">Om Thanage</p>
                                                 <p className="text-xs text-muted-foreground mt-1">{activity.action}</p>
                                             </div>
                                             <div className="text-right">
-                                                <span className={`text-xs px-2 py-1 rounded-full ${
-                                                    activity.status === 'Completed' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
-                                                    activity.status === 'Active' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
-                                                    activity.status === 'Pending' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' :
-                                                    'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                                                }`}>
+                                                <span className={`text-xs px-2 py-1 rounded-full ${activity.status === 'completed' ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-400' :
+                                                    activity.status === 'Active' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-400' :
+                                                        activity.status === 'Pending' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-400' :
+                                                            'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-100'
+                                                    }`}>
                                                     {activity.status}
                                                 </span>
                                                 <p className="text-xs text-muted-foreground mt-1">{new Date(activity.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
@@ -175,7 +174,7 @@ export default function AdminDashboard() {
                                         <th className="px-6 py-3">Email</th>
                                         <th className="px-6 py-3">Joined</th>
                                         <th className="px-6 py-3">Role</th>
-                                    </tr>    
+                                    </tr>
                                 </thead>
                                 <tbody className="divide-y divide-border">
                                     {list.map((item) => (
@@ -208,15 +207,14 @@ export default function AdminDashboard() {
             <aside className="w-64 border-r-2 border-border bg-card hidden md:block">
                 <div className="p-6">
                     <nav className="space-y-3">
-                        {['Overview', 'Users', 'Drivers', 'Reports', 'Settings'].map((item) => (
+                        {['Overview', 'Users'].map((item) => (
                             <button
                                 key={item}
                                 onClick={() => setActiveTab(item.toLowerCase())}
-                                className={`w-full text-left px-4 py-3 rounded-lg border-2 transition-all duration-200 font-bold ${
-                                    activeTab === item.toLowerCase()
-                                        ? 'bg-primary text-primary-foreground border-foreground shadow-[4px_4px_0px_0px_var(--foreground)] translate-x-[-2px] translate-y-[-2px]'
-                                        : 'bg-card text-muted-foreground border-transparent hover:border-foreground hover:shadow-[4px_4px_0px_0px_var(--foreground)] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:text-foreground'
-                                }`}
+                                className={`w-full text-left px-4 py-3 rounded-lg border-2 transition-all duration-200 font-bold ${activeTab === item.toLowerCase()
+                                    ? 'bg-primary text-primary-foreground border-foreground shadow-[4px_4px_0px_0px_var(--foreground)] translate-x-[-2px] translate-y-[-2px]'
+                                    : 'bg-card text-muted-foreground border-transparent hover:border-foreground hover:shadow-[4px_4px_0px_0px_var(--foreground)] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:text-foreground'
+                                    }`}
                             >
                                 {item}
                             </button>

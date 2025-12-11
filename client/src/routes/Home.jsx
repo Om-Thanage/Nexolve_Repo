@@ -248,6 +248,17 @@ export default function Home() {
     }
   };
 
+  const handleDeclineRequest = async () => {
+    if (!incomingRequest) return;
+    try {
+      await api.put(`/requests/${incomingRequest._id}/status`, { status: "rejected" });
+      setIncomingRequest(null);
+    } catch (e) {
+      console.error(e);
+      alert("Error declining ride");
+    }
+  };
+
   const handleRideReset = () => {
     setViewState('searching');
     setDestination(null);
@@ -342,7 +353,7 @@ export default function Home() {
       <DriverRequestModal
         request={incomingRequest}
         onAccept={handleAcceptRequest}
-        onDecline={() => setIncomingRequest(null)}
+        onDecline={handleDeclineRequest}
       />
     </div>
   );
