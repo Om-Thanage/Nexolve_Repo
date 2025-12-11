@@ -19,7 +19,11 @@ const paymentController = {
       const payments = await Promise.all(
         userIds.map(async (uid) => {
           const user = await User.findById(uid);
-          if (!user) throw new Error(`User ${uid} not found`);
+          if (!user) {
+            console.error(`User ${uid} not found for payment split`);
+            throw new Error(`User ${uid} not found`);
+          }
+          console.log(`Initiating payment for user: ${user.name} (${user._id})`);
 
           // Helper to format phone for Razorpay (E.164 or at least ensuring valid chars)
           let contact = user.phone;
@@ -65,7 +69,12 @@ const paymentController = {
             razorpayOrderId: paymentLink.id, // Storing link ID as order ID ref
             transactionId: paymentLink.short_url, // Storing URL for reference
           });
-          return payment.save();
+
+
+          console.log("Saving payment record...", payment);
+          const savedPayment = await payment.save();
+          console.log("Payment record saved successfully:", savedPayment._id);
+          return savedPayment;
         })
       );
 

@@ -15,6 +15,10 @@ const paymentSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
+    commission: {
+        type: Number,
+        default: 0
+    },
     currency: {
         type: String,
         default: 'INR'
