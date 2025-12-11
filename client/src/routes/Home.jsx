@@ -57,7 +57,12 @@ export default function Home() {
               // Check for active driver tasks (accepted/ongoing/completed/arrived)
               // We want ALL requests that are not just 'requested' or 'cancelled' (unless we want to show cancelled history)
               // Actually, simply filtering for relevant statuses is best:
-              const activeReqs = res.data.incoming.filter(r => ['accepted', 'arrived', 'ongoing', 'completed'].includes(r.status));
+              const activeReqs = res.data.incoming.filter(
+                (r) =>
+                  ["accepted", "arrived", "ongoing", "completed"].includes(
+                    r.status
+                  ) && r.trip?.status !== "completed"
+              );
 
               if (activeReqs.length > 0) {
                 setActiveDriverRequests(activeReqs);
@@ -76,7 +81,12 @@ export default function Home() {
             // 2. Outgoing Requests (Rider)
             if (res.data.outgoing && res.data.outgoing.length > 0) {
               // Check for my active requests
-              const myActive = res.data.outgoing.find(r => ['accepted', 'arrived', 'ongoing', 'completed'].includes(r.status));
+              const myActive = res.data.outgoing.find(
+                (r) =>
+                  ["accepted", "arrived", "ongoing", "completed"].includes(
+                    r.status
+                  ) && r.trip?.status !== "completed"
+              );
               // Also check 'requested' to show waiting state if selected
               const myRequested = res.data.outgoing.find(r => r.status === 'requested');
 

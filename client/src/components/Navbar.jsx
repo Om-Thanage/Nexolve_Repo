@@ -41,18 +41,6 @@ export default function Navbar() {
             </li>
             <li>
               <NavLink
-                to="/driver/register"
-                className={({ isActive }) =>
-                  isActive
-                    ? "text-foreground font-semibold"
-                    : "text-muted-foreground hover:text-foreground transition-colors"
-                }
-              >
-                Become Driver
-              </NavLink>
-            </li>
-            <li>
-              <NavLink
                 to="/dashboard"
                 className={({ isActive }) =>
                   isActive

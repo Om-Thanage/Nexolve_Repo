@@ -130,9 +130,8 @@ export default function DriverActiveRidePanel({
     <motion.div
       initial={{ y: "100%" }}
       animate={{ y: 0 }}
-      className={`absolute bottom-0 left-0 right-0 z-50 bg-background rounded-t-3xl shadow-[0_-10px_40px_-10px_rgba(0,0,0,0.2)] border-t border-border md:left-auto md:right-8 md:bottom-8 md:rounded-3xl flex flex-col overflow-hidden max-h-[80vh] transition-all duration-300 ${
-        activeChatUser ? "h-[600px] md:w-[28rem]" : "md:w-[28rem]"
-      }`}
+      className={`absolute bottom-0 left-0 right-0 z-50 bg-background rounded-t-3xl shadow-[0_-10px_40px_-10px_rgba(0,0,0,0.2)] border-t border-border md:left-auto md:right-8 md:bottom-8 md:rounded-3xl flex flex-col overflow-hidden max-h-[80vh] transition-all duration-300 ${activeChatUser ? "h-[600px] md:w-[28rem]" : "md:w-[28rem]"
+        }`}
     >
       {/* Header */}
       <div className="bg-primary text-primary-foreground p-4 flex items-center justify-between shrink-0">
@@ -313,10 +312,30 @@ export default function DriverActiveRidePanel({
         {/* Close/Reset Button when all done */}
         {activeRequests.length === 0 && completedRequests.length > 0 && (
           <button
-            onClick={onReset}
-            className="w-full py-3 bg-primary text-primary-foreground font-bold rounded-xl shadow-lg mt-4"
+            onClick={async () => {
+              if (trip?._id) {
+                setLoading(true);
+                try {
+                  await api.put(`/trips/${trip._id}/status`, {
+                    status: "completed",
+                  });
+                } catch (e) {
+                  console.error("Failed to finish trip", e);
+                  alert(
+                    "Failed to finish trip: " +
+                    (e.response?.data?.message || e.message)
+                  );
+                  setLoading(false);
+                  return; // Don't reset if failed
+                }
+                setLoading(false);
+              }
+              onReset();
+            }}
+            disabled={loading}
+            className="w-full py-3 bg-primary text-primary-foreground font-bold rounded-xl shadow-lg mt-4 disabled:opacity-50"
           >
-            Close & Finish Trip
+            {loading ? "Finishing..." : "Close & Finish Trip"}
           </button>
         )}
       </div>
