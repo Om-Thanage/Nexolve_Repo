@@ -1,13 +1,17 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const rideRequestController = require('../controllers/rideRequestController');
+const rideRequestController = require("../controllers/rideRequestController");
 
-const catchAsync = fn => (req, res, next) => {
-    Promise.resolve(fn(req, res, next)).catch(next);
+const catchAsync = (fn) => (req, res, next) => {
+  Promise.resolve(fn(req, res, next)).catch(next);
 };
 
-router.post('/', catchAsync(rideRequestController.createRequest));
-router.get('/pending', catchAsync(rideRequestController.getPendingRequests));
-router.put('/:id/status', catchAsync(rideRequestController.updateRequestStatus));
+router.post("/", catchAsync(rideRequestController.createRequest));
+router.get("/pending", catchAsync(rideRequestController.getPendingRequests));
+router.put(
+  "/:id/status",
+  catchAsync(rideRequestController.updateRequestStatus)
+);
+router.put("/:id/archive", catchAsync(rideRequestController.archiveRequest));
 
 module.exports = router;

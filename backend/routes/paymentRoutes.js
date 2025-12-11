@@ -1,12 +1,16 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const paymentController = require('../controllers/paymentController');
+const paymentController = require("../controllers/paymentController");
 
-const catchAsync = fn => (req, res, next) => {
-    Promise.resolve(fn(req, res, next)).catch(next);
+const catchAsync = (fn) => (req, res, next) => {
+  Promise.resolve(fn(req, res, next)).catch(next);
 };
 
-router.post('/split', catchAsync(paymentController.initiateSplitPayment));
-router.post('/webhook', catchAsync(paymentController.handleWebhook));
+router.post("/split", catchAsync(paymentController.initiateSplitPayment));
+router.post("/webhook", catchAsync(paymentController.handleWebhook));
+router.get(
+  "/callback-success",
+  catchAsync(paymentController.handleCallbackSuccess)
+);
 
 module.exports = router;
