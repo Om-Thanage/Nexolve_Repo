@@ -90,8 +90,8 @@
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/Om-Thanage/Nexolve_Repo.git
-   cd Nexolve_Repo
+   git clone https://github.com/Om-Thanage/Ryde.git
+   cd Ryde
    ```
 
 2. **Install dependencies**
