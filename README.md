@@ -134,7 +134,7 @@
    ```env
    VITE_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
    VITE_API_URL=http://localhost:5000
-   VITE_GOOGLE_MAPS_API_KEY=your_google_maps_key
+   VITE_GMAPS_API_KEY=your_google_maps_key
    ```
 
 4. **Run the application**
